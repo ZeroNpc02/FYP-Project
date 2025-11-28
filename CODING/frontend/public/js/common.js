@@ -89,20 +89,24 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         }
 
-        //shared popup
+        //shared popup (only when the modal exists on the page)
         const modal = document.getElementById("Modal");
-        const closeButton = modal.querySelector(".close-button");
-        const listContainer = document.getElementById("List");
-        const modalTitle = document.getElementById("modal-title");
+        if (modal) {
+            const closeButton = modal.querySelector(".close-button");
+            const listContainer = document.getElementById("List");
+            const modalTitle = document.getElementById("modal-title");
 
-
-        closeButton.addEventListener("click", () => {
-            modal.classList.add("d-none");
-        });
-        window.addEventListener("click", (e) => {
-            if (e.target === modal) {
-            modal.classList.add("d-none");
+            if (closeButton) {
+                closeButton.addEventListener("click", () => {
+                    modal.classList.add("d-none");
+                });
             }
-        });
+
+            window.addEventListener("click", (e) => {
+                if (e.target === modal) {
+                modal.classList.add("d-none");
+                }
+            });
+        }
     });
 });

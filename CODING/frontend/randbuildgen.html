@@ -16,8 +16,24 @@
         <h3 class="mb-3 text-center">Random PC Build Generator</h3>
 
         <div class="mb-3">
+          <label for="pcType" class="form-label">PC Type</label>
+          <select id="pcType" class="form-select" required>
+            <option value="">Select PC Type...</option>
+            <option value="consumer">Consumer PC (Gaming/Home)</option>
+            <option value="workstation">Workstation</option>
+            <option value="datacenter">Datacenter Server</option>
+          </select>
+          <div id="pcTypeInfo" class="form-text text-muted mt-2" style="display: none;">
+            <small></small>
+          </div>
+        </div>
+
+        <div class="mb-3">
           <label for="budget" class="form-label">Budget (RM)</label>
           <input type="number" class="form-control" id="budget" placeholder="Enter your budget">
+          <div id="budgetSuggestion" class="form-text text-muted mt-1">
+            <small></small>
+          </div>
         </div>
 
         <div class="mb-3">
@@ -49,12 +65,18 @@
 <script>
 const apiBase = 'http://localhost:3001/api';
 
-// Fetch components and optionally filter by brand
-async function fetchComponents(endpoint, brand = 'any') {
+// Fetch components and optionally filter by brand and PC type
+async function fetchComponents(endpoint, brand = 'any', pcType = null) {
     try {
         const res = await fetch(`${apiBase}/${endpoint}`);
         let data = await res.json();
 
+        // Filter by PC type for CPUs (if specified)
+        if (pcType && endpoint === 'cpus') {
+            data = data.filter(item => item.cpu_category === pcType);
+        }
+
+        // Filter by brand
         if (brand !== 'any') {
             const brandLower = brand.toLowerCase().trim();
             data = data.filter(item => item.brand && item.brand.toLowerCase().trim() === brandLower);
@@ -68,13 +90,70 @@ async function fetchComponents(endpoint, brand = 'any') {
     }
 }
 
+// Get appropriate component suggestions based on PC type
+function getPcTypeRecommendations(pcType) {
+    const recommendations = {
+        consumer: {
+            description: "Optimized for gaming, content creation, and home use",
+            priorities: ["gaming performance", "good balance", "modern features"],
+            typicalBudget: "3000-10000"
+        },
+        workstation: {
+            description: "Built for professional workloads, rendering, and productivity",
+            priorities: ["core count", "memory capacity", "stability"],
+            typicalBudget: "8000-25000"
+        },
+        datacenter: {
+            description: "Enterprise-grade server for critical workloads",
+            priorities: ["reliability", "scalability", "efficiency"],
+            typicalBudget: "15000-50000+"
+        }
+    };
+    return recommendations[pcType] || {};
+}
+
 function getRandomItem(array) {
     if (!array || array.length === 0) return null;
     return array[Math.floor(Math.random() * array.length)];
 }
 
+// Update PC type info when selection changes
+document.getElementById('pcType').addEventListener('change', (e) => {
+    const pcType = e.target.value;
+    const infoDiv = document.getElementById('pcTypeInfo');
+    const budgetInput = document.getElementById('budget');
+    const budgetSuggestion = document.getElementById('budgetSuggestion');
+
+    if (pcType) {
+        const info = getPcTypeRecommendations(pcType);
+        infoDiv.querySelector('small').innerHTML = `
+            <strong>${info.description}</strong><br>
+            Priorities: ${info.priorities.join(', ')}
+        `;
+        infoDiv.style.display = 'block';
+
+        // Suggest budget range
+        budgetSuggestion.querySelector('small').textContent =
+            `Typical budget range: RM ${info.typicalBudget}`;
+        budgetInput.placeholder = `Suggested: RM ${info.typicalBudget}`;
+    } else {
+        infoDiv.style.display = 'none';
+        budgetSuggestion.querySelector('small').textContent = '';
+        budgetInput.placeholder = 'Enter your budget';
+    }
+});
+
 document.getElementById('generateBtn').addEventListener('click', async () => {
     const status = document.getElementById('status');
+
+    // Validate PC Type selection
+    const pcType = document.getElementById('pcType').value;
+    if (!pcType) {
+        status.textContent = "⚠️ Please select a PC type to continue.";
+        status.style.color = "#ffc107";
+        return;
+    }
+
     status.textContent = "Generating build...";
 
     const budget = parseFloat(document.getElementById('budget').value);
@@ -83,7 +162,7 @@ document.getElementById('generateBtn').addEventListener('click', async () => {
 
     try {
         const [cpus, gpus, motherboards, rams, cpucoolers, storages, cases, psus] = await Promise.all([
-            fetchComponents('cpus', cpuBrand),
+            fetchComponents('cpus', cpuBrand, pcType),
             fetchComponents('gpus', gpuBrand),
             fetchComponents('motherboards'),
             fetchComponents('rams'),
@@ -93,15 +172,24 @@ document.getElementById('generateBtn').addEventListener('click', async () => {
             fetchComponents('psus')
         ]);
 
+        // Check if PC type filter removed all CPUs
+        if (!cpus.length) {
+            status.textContent = `❌ No ${pcType} CPUs found. Try selecting "Any" CPU brand or a different PC type.`;
+            status.style.color = "#dc3545";
+            return;
+        }
+
         // Check if brand filter removed all items
         if ((cpuBrand !== 'any' && !cpus.length) || (gpuBrand !== 'any' && !gpus.length)) {
             status.textContent = `❌ No components found for selected brand(s). Try selecting "Any".`;
+            status.style.color = "#dc3545";
             return;
         }
 
         // Check if any category is empty
-        if (!cpus.length || !gpus.length || !motherboards.length || !rams.length || !cpucoolers.length || !storages.length || !cases.length || !psus.length) {
+        if (!gpus.length || !motherboards.length || !rams.length || !cpucoolers.length || !storages.length || !cases.length || !psus.length) {
             status.textContent = "❌ One or more component categories have no available items. Check your database.";
+            status.style.color = "#dc3545";
             return;
         }
 
@@ -118,7 +206,8 @@ document.getElementById('generateBtn').addEventListener('click', async () => {
 
         const totalPrice = Object.values(build).reduce((sum, item) => sum + (parseFloat(item?.price) || 0), 0);
         if (budget && totalPrice > budget) {
-            status.textContent = `⚠️ Generated build exceeds your budget (RM${totalPrice.toFixed(2)})`;
+            status.textContent = `⚠️ Generated build exceeds your budget (RM${totalPrice.toFixed(2)}). Try increasing budget or generating again.`;
+            status.style.color = "#ffc107";
             return;
         }
 

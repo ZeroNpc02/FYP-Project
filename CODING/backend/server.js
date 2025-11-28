@@ -61,7 +61,7 @@ app.get('/api/gpus', (req, res) => {
 // get cpu data
 app.get('/api/cpus', (req, res) => {
   const query = `
-    SELECT id, name, brand, price, image_url, product_url, cores, threads, base_clock, boost_clock, socket, dimension, wattage 
+    SELECT id, name, brand, price, image_url, product_url, cores, threads, base_clock, boost_clock, socket, dimension, wattage, cpu_category
     FROM cpus
   `;
   db.query(query, (err, results) => {
