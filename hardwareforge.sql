@@ -11,7 +11,7 @@
  Target Server Version : 80030 (8.0.30)
  File Encoding         : 65001
 
- Date: 28/11/2025 18:41:11
+ Date: 29/11/2025 19:21:16
 */
 
 SET NAMES utf8mb4;
@@ -53,7 +53,7 @@ CREATE TABLE `builds`  (
   CONSTRAINT `builds_ibfk_7` FOREIGN KEY (`cases_id`) REFERENCES `cases` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `builds_ibfk_8` FOREIGN KEY (`psus_id`) REFERENCES `psus` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `builds_ibfk_9` FOREIGN KEY (`Users_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of builds
@@ -74,26 +74,32 @@ CREATE TABLE `cases`  (
   `form_factor` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `materials` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `mainboard_support` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `color` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `front_panel` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `side_panel` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `expansion_slot` int NULL DEFAULT NULL,
   `ssd_slot` int NULL DEFAULT NULL,
   `hdd_slot` int NULL DEFAULT NULL,
   `gpu_length` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `gpu_length_max_mm` int NULL DEFAULT NULL,
   `cpuCooler_height` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `cpu_cooler_height_max_mm` int NULL DEFAULT NULL,
   `psu_length` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `weight` decimal(10, 2) NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_cases_color`(`color` ASC) USING BTREE,
+  INDEX `idx_cases_gpu_length`(`gpu_length_max_mm` ASC) USING BTREE,
+  INDEX `idx_cases_cooler_height`(`cpu_cooler_height_max_mm` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cases
 -- ----------------------------
-INSERT INTO `cases` VALUES (1, 'Lian Li O11 Dynamic EVO', 699.00, 'https://example.com/images/o11_dynamic_evo.jpg', 'https://www.lian-li.com/o11-dynamic-evo/', '465 x 285 x 459 mm', 'Mid Tower', 'Aluminum, Tempered Glass, Steel', 'E-ATX, ATX, Micro-ATX, Mini-ITX', '1 x USB-C, 2 x USB 3.0, Audio Combo', 'Tempered Glass', 8, 6, 4, '422 mm', '167 mm', '220 mm', 12.00);
-INSERT INTO `cases` VALUES (2, 'NZXT H9 Flow', 749.00, 'https://example.com/images/nzxt_h9_flow.jpg', 'https://nzxt.com/product/h9-flow', '495 x 290 x 466 mm', 'Mid Tower', 'Steel, Tempered Glass, Plastic', 'ATX, Micro-ATX, Mini-ITX', '1 x USB-C, 2 x USB 3.2, Audio Jack', 'Tempered Glass', 7, 4, 2, '435 mm', '165 mm', '200 mm', 13.10);
-INSERT INTO `cases` VALUES (3, 'Fractal Design North', 679.00, 'https://example.com/images/fractal_north.jpg', 'https://www.fractal-design.com/products/cases/north/', '447 x 215 x 469 mm', 'Mid Tower', 'Steel, Tempered Glass, Real Wood', 'ATX, Micro-ATX, Mini-ITX', '2 x USB 3.0, 1 x USB-C, Audio Combo', 'Tempered Glass', 7, 3, 2, '355 mm', '170 mm', '255 mm', 7.60);
-INSERT INTO `cases` VALUES (4, 'Montech Air 100 ARGB', 299.00, 'https://example.com/images/montech_air100_argb.jpg', 'https://www.montechpc.com/en/products_detail.php?serial=94', '405 x 210 x 425 mm', 'Micro ATX', 'Steel, Tempered Glass, Plastic', 'Micro-ATX, Mini-ITX', '2 x USB 3.0, 1 x Audio Combo', 'Tempered Glass', 4, 2, 2, '330 mm', '161 mm', '160 mm', 6.30);
-INSERT INTO `cases` VALUES (5, 'Phanteks XT Pro Ultra', 599.00, 'https://example.com/images/phanteks_xt_pro_ultra.jpg', 'https://phanteks.com/XT-Pro-Ultra.html', '460 x 230 x 490 mm', 'Mid Tower', 'Steel, Tempered Glass', 'E-ATX, ATX, Micro-ATX, Mini-ITX', '1 x USB-C, 2 x USB 3.0, Audio Combo', 'Tempered Glass', 7, 3, 2, '415 mm', '184 mm', '270 mm', 9.20);
+INSERT INTO `cases` VALUES (1, 'Lian Li O11 Dynamic EVO', 699.00, 'https://example.com/images/o11_dynamic_evo.jpg', 'https://www.lian-li.com/o11-dynamic-evo/', '465 x 285 x 459 mm', 'Mid Tower', 'Aluminum, Tempered Glass, Steel', 'E-ATX, ATX, Micro-ATX, Mini-ITX', 'Black', '1 x USB-C, 2 x USB 3.0, Audio Combo', 'Tempered Glass', 8, 6, 4, '422 mm', 422, '167 mm', 167, '220 mm', 12.00);
+INSERT INTO `cases` VALUES (2, 'NZXT H9 Flow', 749.00, 'https://example.com/images/nzxt_h9_flow.jpg', 'https://nzxt.com/product/h9-flow', '495 x 290 x 466 mm', 'Mid Tower', 'Steel, Tempered Glass, Plastic', 'ATX, Micro-ATX, Mini-ITX', 'Black', '1 x USB-C, 2 x USB 3.2, Audio Jack', 'Tempered Glass', 7, 4, 2, '435 mm', 435, '165 mm', 165, '200 mm', 13.10);
+INSERT INTO `cases` VALUES (3, 'Fractal Design North', 679.00, 'https://example.com/images/fractal_north.jpg', 'https://www.fractal-design.com/products/cases/north/', '447 x 215 x 469 mm', 'Mid Tower', 'Steel, Tempered Glass, Real Wood', 'ATX, Micro-ATX, Mini-ITX', 'Wood', '2 x USB 3.0, 1 x USB-C, Audio Combo', 'Tempered Glass', 7, 3, 2, '355 mm', 355, '170 mm', 170, '255 mm', 7.60);
+INSERT INTO `cases` VALUES (4, 'Montech Air 100 ARGB', 299.00, 'https://example.com/images/montech_air100_argb.jpg', 'https://www.montechpc.com/en/products_detail.php?serial=94', '405 x 210 x 425 mm', 'Micro ATX', 'Steel, Tempered Glass, Plastic', 'Micro-ATX, Mini-ITX', 'Black', '2 x USB 3.0, 1 x Audio Combo', 'Tempered Glass', 4, 2, 2, '330 mm', 330, '161 mm', 161, '160 mm', 6.30);
+INSERT INTO `cases` VALUES (5, 'Phanteks XT Pro Ultra', 599.00, 'https://example.com/images/phanteks_xt_pro_ultra.jpg', 'https://phanteks.com/XT-Pro-Ultra.html', '460 x 230 x 490 mm', 'Mid Tower', 'Steel, Tempered Glass', 'E-ATX, ATX, Micro-ATX, Mini-ITX', 'Black', '1 x USB-C, 2 x USB 3.0, Audio Combo', 'Tempered Glass', 7, 3, 2, '415 mm', 415, '184 mm', 184, '270 mm', 9.20);
 
 -- ----------------------------
 -- Table structure for cpucoolers
@@ -107,19 +113,23 @@ CREATE TABLE `cpucoolers`  (
   `product_url` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
   `liquid_cooling` tinyint(1) NULL DEFAULT NULL,
   `dimension` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `color` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `height_mm` int NULL DEFAULT NULL,
   `heatpipes` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `wattage` int NULL DEFAULT 0,
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_cpucoolers_color`(`color` ASC) USING BTREE,
+  INDEX `idx_cpucoolers_height`(`height_mm` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cpucoolers
 -- ----------------------------
-INSERT INTO `cpucoolers` VALUES (1, 'Noctua NH-U12S Redux', 239.00, '', '', 0, '158mm (H) x 125mm (W) x 71mm (D)', '4 heatpipes', 180);
-INSERT INTO `cpucoolers` VALUES (2, 'DeepCool AK400 Performance', 139.00, '', '', 0, '155mm (H) x 127mm (W) x 97mm (D)', '4 heatpipes', 180);
-INSERT INTO `cpucoolers` VALUES (3, 'be quiet! Dark Rock 4', 329.00, '', '', 0, '159mm (H) x 136mm (W) x 96mm (D)', '6 heatpipes', 200);
-INSERT INTO `cpucoolers` VALUES (4, 'Cooler Master MasterLiquid ML240L V2 RGB', 329.00, '', '', 1, '277mm (L) x 119.6mm (W) x 27.2mm (H)', 'Pump-based', 250);
-INSERT INTO `cpucoolers` VALUES (5, 'NZXT Kraken X63 RGB', 569.00, '', '', 1, '315mm (L) x 143mm (W) x 30mm (H)', 'Pump-based', 280);
+INSERT INTO `cpucoolers` VALUES (1, 'Noctua NH-U12S Redux', 239.00, '', '', 0, '158mm (H) x 125mm (W) x 71mm (D)', 'Black', 158, '4 heatpipes', 180);
+INSERT INTO `cpucoolers` VALUES (2, 'DeepCool AK400 Performance', 139.00, '', '', 0, '155mm (H) x 127mm (W) x 97mm (D)', 'Black', 155, '4 heatpipes', 180);
+INSERT INTO `cpucoolers` VALUES (3, 'be quiet! Dark Rock 4', 329.00, '', '', 0, '159mm (H) x 136mm (W) x 96mm (D)', 'Black', 159, '6 heatpipes', 200);
+INSERT INTO `cpucoolers` VALUES (4, 'Cooler Master MasterLiquid ML240L V2 RGB', 329.00, '', '', 1, '277mm (L) x 119.6mm (W) x 27.2mm (H)', 'RGB', 277, 'Pump-based', 250);
+INSERT INTO `cpucoolers` VALUES (5, 'NZXT Kraken X63 RGB', 569.00, '', '', 1, '315mm (L) x 143mm (W) x 30mm (H)', 'RGB', 315, 'Pump-based', 280);
 
 -- ----------------------------
 -- Table structure for cpus
@@ -141,7 +151,7 @@ CREATE TABLE `cpus`  (
   `wattage` int NULL DEFAULT NULL,
   `cpu_category` enum('consumer','workstation','datacenter') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'consumer',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 16 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 16 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cpus
@@ -182,27 +192,28 @@ CREATE TABLE `gpus`  (
   `wattage` int NULL DEFAULT NULL,
   `card_bus` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `gpu_category` enum('consumer','workstation','datacenter') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'consumer',
+  `gpu_subcategory` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT 'gaming',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 16 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 16 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of gpus
 -- ----------------------------
-INSERT INTO `gpus` VALUES (1, 'MSI GeForce RTX 5070 Ti EXPERT OC', 'NVIDIA', 4199.00, 'images/GPU/MSI-RTX5070TI-EXPERT-OC-1.jpg', 'https://www.tmt.my/products/msi-geforce-rtx-5070-ti-expert-oc', '	15.00 cm x 31.90 cm x 6.00 cm', 'black', 2588.00, 16, 'GDDR7', '16-pin', 300, '256-Bit', 'consumer');
-INSERT INTO `gpus` VALUES (2, 'ASUS Dual Radeon RX 6500 XT V2 OC', 'AMD', 599.00, 'images/GPU/ASUS-DUAL-RADEON-RX-6500-XT-V2-OC-1.jpg', '\r\n', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'consumer');
-INSERT INTO `gpus` VALUES (3, 'MSI GeForce RTX 5070 Ti Gaming TRIO OC', 'NVIDIA', 4299.00, 'images/GPU/MSI-RTX-5070-TI-GAMING-TRIO-PLUS-OC.jpg', '\r\n', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'consumer');
-INSERT INTO `gpus` VALUES (4, 'ZOTAC GAMING GeForce RTX 5090 ARCTICSTORM AIO', 'NVIDIA', 12999.00, 'images/GPU/ZOTAC-RTX5090-ARCTICSTORM-AIO-MAIN.jpg', '\r\n', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'consumer');
-INSERT INTO `gpus` VALUES (5, 'Gigabyte GeForce RTX 5050 WINDFORCE OC', 'NVIDIA', 1099.00, 'images/GPU/', '\r\n', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'consumer');
-INSERT INTO `gpus` VALUES (6, 'Sapphire Radeon RX 9060 XT OC NITRO+ 16GB', 'AMD', 1859.00, 'images/GPU/SAPPHIRE-RADEON-NITRO-RX9060XT-1.jpg', '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'consumer');
-INSERT INTO `gpus` VALUES (7, 'Acer ARC B580 Nitro OC', 'INTEL', 1399.00, 'images/GPU/ACER-ARC-B580-NITRO-OC-1.jpg', '\r\n', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'consumer');
-INSERT INTO `gpus` VALUES (8, 'MSI GeForce RTX 5070 Ti SHADOW 3X OC', 'NVIDIA', 3799.00, 'images/GPU/MSI-RTX-5070-ti-SHADOW-3X-OC.jpg', '\r\n', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'consumer');
-INSERT INTO `gpus` VALUES (9, 'ASUS TURBO Radeon AI PRO R9700', 'AMD', 6849.00, 'images/GPU/ASUS-TURBO-AI-PRO-9700-BOX-VIEW.jpg', '\r\n', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'workstation');
-INSERT INTO `gpus` VALUES (10, 'ZOTAC GAMING GeForce RTX 3050 Twin Edge OC', 'NVIDIA', 749.00, 'https://www.tmt.my/products/zotac-gaming-geforce-rtx-3050-twin-edge-oc', 'images/GPU/ZOTAC-RTX-3050-TWIN-EDGE-OC-1.jpg\r', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'consumer');
-INSERT INTO `gpus` VALUES (11, 'ASUS Dual Radeon RX 7600 EVO OC', 'AMD', 1099.00, 'https://www.tmt.my/products/asus-dual-radeon-rx-7600-evo-oc', 'images/GPU/ASUS-DUAL-RX7600-EVO-OC-1\r', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'consumer');
-INSERT INTO `gpus` VALUES (12, 'ASUS Prime GeForce RTX 5080 OC', 'NVIDIA', 6399.00, 'https://www.tmt.my/products/asus-prime-geforce-rtx-5080-oc', 'images/GPU/ASUS-PRIME-RTX-5080-OC.jpg\r', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'consumer');
-INSERT INTO `gpus` VALUES (13, 'Gigabyte GeForce RTX 5060 OC Low Profile', 'NVIDIA', 1349.00, 'https://www.tmt.my/products/gigabyte-geforce-rtx-5060-oc-low-profile', 'images/GPU/\r', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'consumer');
-INSERT INTO `gpus` VALUES (14, 'PNY GeForce RTX 5060 Ti Dual Fan OC 8GB', 'NVIDIA', 1729.00, 'https://www.tmt.my/products/pny-geforce-rtx-5060-ti-dual-fan-oc-8gb', 'images/GPU/\r', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'consumer');
-INSERT INTO `gpus` VALUES (15, 'Palit GeForce RTX 5060 Dual OC', 'NVIDIA', 1329.00, 'https://www.tmt.my/products/palit-geforce-rtx-5060-dual-oc', 'images/GPU/\r', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'consumer');
+INSERT INTO `gpus` VALUES (1, 'MSI GeForce RTX 5070 Ti EXPERT OC', 'NVIDIA', 4199.00, 'images/GPU/MSI-RTX5070TI-EXPERT-OC-1.jpg', 'https://www.tmt.my/products/msi-geforce-rtx-5070-ti-expert-oc', '	15.00 cm x 31.90 cm x 6.00 cm', 'black', 2588.00, 16, 'GDDR7', '16-pin', 300, '256-Bit', 'consumer', 'gaming');
+INSERT INTO `gpus` VALUES (2, 'ASUS Dual Radeon RX 6500 XT V2 OC', 'AMD', 599.00, 'images/GPU/ASUS-DUAL-RADEON-RX-6500-XT-V2-OC-1.jpg', '\r\n', NULL, NULL, NULL, 8, 'GDDR6', NULL, 130, NULL, 'consumer', 'entry-level');
+INSERT INTO `gpus` VALUES (3, 'MSI GeForce RTX 5070 Ti Gaming TRIO OC', 'NVIDIA', 4299.00, 'images/GPU/MSI-RTX-5070-TI-GAMING-TRIO-PLUS-OC.jpg', '\r\n', NULL, NULL, NULL, 16, 'GDDR7', NULL, 300, NULL, 'consumer', 'gaming');
+INSERT INTO `gpus` VALUES (4, 'ZOTAC GAMING GeForce RTX 5090 ARCTICSTORM AIO', 'NVIDIA', 12999.00, 'images/GPU/ZOTAC-RTX5090-ARCTICSTORM-AIO-MAIN.jpg', '\r\n', NULL, NULL, NULL, 32, 'GDDR7', NULL, 600, NULL, 'consumer', 'enthusiast');
+INSERT INTO `gpus` VALUES (5, 'Gigabyte GeForce RTX 5050 WINDFORCE OC', 'NVIDIA', 1099.00, 'images/GPU/', '\r\n', NULL, NULL, NULL, 8, 'GDDR6', NULL, 180, NULL, 'consumer', 'entry-level');
+INSERT INTO `gpus` VALUES (6, 'Sapphire Radeon RX 9060 XT OC NITRO+ 16GB', 'AMD', 1859.00, 'images/GPU/SAPPHIRE-RADEON-NITRO-RX9060XT-1.jpg', '', NULL, NULL, NULL, 16, 'GDDR6X', NULL, 375, NULL, 'consumer', 'gaming');
+INSERT INTO `gpus` VALUES (7, 'Acer ARC B580 Nitro OC', 'INTEL', 1399.00, 'images/GPU/ACER-ARC-B580-NITRO-OC-1.jpg', '\r\n', NULL, NULL, NULL, 12, 'GDDR6', NULL, 150, NULL, 'consumer', 'workstation');
+INSERT INTO `gpus` VALUES (8, 'MSI GeForce RTX 5070 Ti SHADOW 3X OC', 'NVIDIA', 3799.00, 'images/GPU/MSI-RTX-5070-ti-SHADOW-3X-OC.jpg', '\r\n', NULL, NULL, NULL, 16, 'GDDR7', NULL, 300, NULL, 'consumer', 'professional');
+INSERT INTO `gpus` VALUES (9, 'ASUS TURBO Radeon AI PRO R9700', 'AMD', 6849.00, 'images/GPU/ASUS-TURBO-AI-PRO-9700-BOX-VIEW.jpg', '\r\n', NULL, NULL, NULL, 24, 'GDDR6', NULL, 355, NULL, 'workstation', 'enthusiast');
+INSERT INTO `gpus` VALUES (10, 'ZOTAC GAMING GeForce RTX 3050 Twin Edge OC', 'NVIDIA', 749.00, 'https://www.tmt.my/products/zotac-gaming-geforce-rtx-3050-twin-edge-oc', 'images/GPU/ZOTAC-RTX-3050-TWIN-EDGE-OC-1.jpg\r', NULL, NULL, NULL, 8, 'GDDR6', NULL, 130, NULL, 'consumer', 'entry-level');
+INSERT INTO `gpus` VALUES (11, 'ASUS Dual Radeon RX 7600 EVO OC', 'AMD', 1099.00, 'https://www.tmt.my/products/asus-dual-radeon-rx-7600-evo-oc', 'images/GPU/ASUS-DUAL-RX7600-EVO-OC-1\r', NULL, NULL, NULL, 16, 'GDDR6', NULL, 220, NULL, 'consumer', 'gaming');
+INSERT INTO `gpus` VALUES (12, 'ASUS Prime GeForce RTX 5080 OC', 'NVIDIA', 6399.00, 'https://www.tmt.my/products/asus-prime-geforce-rtx-5080-oc', 'images/GPU/ASUS-PRIME-RTX-5080-OC.jpg\r', NULL, NULL, NULL, 16, 'GDDR7', NULL, 350, NULL, 'consumer', 'gaming');
+INSERT INTO `gpus` VALUES (13, 'Gigabyte GeForce RTX 5060 OC Low Profile', 'NVIDIA', 1349.00, 'https://www.tmt.my/products/gigabyte-geforce-rtx-5060-oc-low-profile', 'images/GPU/\r', NULL, NULL, NULL, 8, 'GDDR6', NULL, 170, NULL, 'consumer', 'entry-level');
+INSERT INTO `gpus` VALUES (14, 'PNY GeForce RTX 5060 Ti Dual Fan OC 8GB', 'NVIDIA', 1729.00, 'https://www.tmt.my/products/pny-geforce-rtx-5060-ti-dual-fan-oc-8gb', 'images/GPU/\r', NULL, NULL, NULL, 8, 'GDDR6', NULL, 220, NULL, 'consumer', 'workstation');
+INSERT INTO `gpus` VALUES (15, 'Palit GeForce RTX 5060 Dual OC', 'NVIDIA', 1329.00, 'https://www.tmt.my/products/palit-geforce-rtx-5060-dual-oc', 'images/GPU/\r', NULL, NULL, NULL, 8, 'GDDR6', NULL, 220, NULL, 'consumer', 'datacenter');
 
 -- ----------------------------
 -- Table structure for motherboards
@@ -215,26 +226,31 @@ CREATE TABLE `motherboards`  (
   `image_url` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
   `product_url` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
   `CPU` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `cpu_socket` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `chipset` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `memory` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `memory_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `memory_speed` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `LAN` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `wireless_connection` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `expansion_slot` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `storage_interface` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `form_factor` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `wattage` int NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_motherboards_cpu_socket`(`cpu_socket` ASC) USING BTREE,
+  INDEX `idx_motherboards_memory_type`(`memory_type` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of motherboards
 -- ----------------------------
-INSERT INTO `motherboards` VALUES (1, 'MSI MPG B850 EDGE TI WIFI ATX Motherboard', 1499.00, NULL, 'https://www.tmt.my/products/msi-mpg-b850-edge-ti-wifi-atx-motherboard', 'AM5', 'AMD B850', '4 x DDR5', 'YES', 'YES', 'PCI-E 5.0 x 16 ', '4 x M.2', 'ATX', 70);
-INSERT INTO `motherboards` VALUES (2, 'MSI B550 Gaming Plus', 599.00, 'https://example.com/images/msi_b550_gaming_plus.jpg', 'https://www.msi.com/Motherboard/B550-GAMING-PLUS', 'AM4', 'AMD B550', '4 x DDR4, up to 4400 MHz, 128GB max', 'Realtek 8111H Gigabit LAN', 'None', '2 x PCIe x16, 2 x PCIe x1', '2 x M.2, 6 x SATA 6Gb/s', 'ATX', 65);
-INSERT INTO `motherboards` VALUES (3, 'ASUS TUF Gaming B650-PLUS WiFi', 899.00, 'https://example.com/images/asus_tuf_b650_plus_wifi.jpg', 'https://www.asus.com/motherboards-components/motherboards/tuf-gaming/tuf-gaming-b650-plus-wifi/', 'AM5', 'AMD B650', '4 x DDR5, up to 6400 MHz, 128GB max', '2.5Gb Intel LAN', 'WiFi 6 + Bluetooth 5.2', '2 x PCIe x16 (1x Gen4), 1 x PCIe x1', '3 x M.2, 4 x SATA 6Gb/s', 'ATX', 75);
-INSERT INTO `motherboards` VALUES (4, 'Gigabyte B760M AORUS Elite AX', 749.00, 'https://example.com/images/gigabyte_b760m_aorus_elite_ax.jpg', 'https://www.gigabyte.com/Motherboard/B760M-AORUS-ELITE-AX-rev-10', 'LGA1700', 'Intel B760', '4 x DDR5, up to 7600 MHz, 128GB max', '2.5Gb LAN', 'WiFi 6E + Bluetooth 5.3', '2 x PCIe x16 (1x Gen4), 1 x PCIe x1', '2 x M.2, 4 x SATA 6Gb/s', 'Micro ATX', 70);
-INSERT INTO `motherboards` VALUES (5, 'ASRock Z790 Steel Legend', 1099.00, 'https://example.com/images/asrock_z790_steel_legend.jpg', 'https://www.asrock.com/mb/Intel/Z790%20Steel%20Legend/', 'LGA1700', 'Intel Z790', '4 x DDR5, up to 7200 MHz, 128GB max', '2.5Gb Realtek LAN', 'WiFi 6E + Bluetooth 5.3', '3 x PCIe x16, 1 x PCIe x1', '3 x M.2, 8 x SATA 6Gb/s', 'ATX', 80);
-INSERT INTO `motherboards` VALUES (6, 'ASUS ROG Strix B550-I Gaming', 899.00, 'https://example.com/images/asus_rog_strix_b550i.jpg', 'https://rog.asus.com/motherboards/rog-strix/rog-strix-b550-i-gaming-model/', 'AM4', 'AMD B550', '2 x DDR4, up to 5100 MHz, 64GB max', 'Intel I225-V 2.5Gb LAN', 'WiFi 6 + Bluetooth 5.1', '1 x PCIe x16', '2 x M.2, 4 x SATA 6Gb/s', 'Mini ITX', 60);
+INSERT INTO `motherboards` VALUES (1, 'MSI MPG B850 EDGE TI WIFI ATX Motherboard', 1499.00, NULL, 'https://www.tmt.my/products/msi-mpg-b850-edge-ti-wifi-atx-motherboard', 'AM5', 'AM5', 'AMD B850', '4 x DDR5', 'DDR5', NULL, 'YES', 'YES', 'PCI-E 5.0 x 16 ', '4 x M.2', 'ATX', 70);
+INSERT INTO `motherboards` VALUES (2, 'MSI B550 Gaming Plus', 599.00, 'https://example.com/images/msi_b550_gaming_plus.jpg', 'https://www.msi.com/Motherboard/B550-GAMING-PLUS', 'AM4', 'AM4', 'AMD B550', '4 x DDR4, up to 4400 MHz, 128GB max', 'DDR4', '4400+', 'Realtek 8111H Gigabit LAN', 'None', '2 x PCIe x16, 2 x PCIe x1', '2 x M.2, 6 x SATA 6Gb/s', 'ATX', 65);
+INSERT INTO `motherboards` VALUES (3, 'ASUS TUF Gaming B650-PLUS WiFi', 899.00, 'https://example.com/images/asus_tuf_b650_plus_wifi.jpg', 'https://www.asus.com/motherboards-components/motherboards/tuf-gaming/tuf-gaming-b650-plus-wifi/', 'AM5', 'AM5', 'AMD B650', '4 x DDR5, up to 6400 MHz, 128GB max', 'DDR5', '6400+', '2.5Gb Intel LAN', 'WiFi 6 + Bluetooth 5.2', '2 x PCIe x16 (1x Gen4), 1 x PCIe x1', '3 x M.2, 4 x SATA 6Gb/s', 'ATX', 75);
+INSERT INTO `motherboards` VALUES (4, 'Gigabyte B760M AORUS Elite AX', 749.00, 'https://example.com/images/gigabyte_b760m_aorus_elite_ax.jpg', 'https://www.gigabyte.com/Motherboard/B760M-AORUS-ELITE-AX-rev-10', 'LGA1700', 'LGA1700', 'Intel B760', '4 x DDR5, up to 7600 MHz, 128GB max', 'DDR5', '7600+', '2.5Gb LAN', 'WiFi 6E + Bluetooth 5.3', '2 x PCIe x16 (1x Gen4), 1 x PCIe x1', '2 x M.2, 4 x SATA 6Gb/s', 'Micro ATX', 70);
+INSERT INTO `motherboards` VALUES (5, 'ASRock Z790 Steel Legend', 1099.00, 'https://example.com/images/asrock_z790_steel_legend.jpg', 'https://www.asrock.com/mb/Intel/Z790%20Steel%20Legend/', 'LGA1700', 'LGA1700', 'Intel Z790', '4 x DDR5, up to 7200 MHz, 128GB max', 'DDR5', '7200+', '2.5Gb Realtek LAN', 'WiFi 6E + Bluetooth 5.3', '3 x PCIe x16, 1 x PCIe x1', '3 x M.2, 8 x SATA 6Gb/s', 'ATX', 80);
+INSERT INTO `motherboards` VALUES (6, 'ASUS ROG Strix B550-I Gaming', 899.00, 'https://example.com/images/asus_rog_strix_b550i.jpg', 'https://rog.asus.com/motherboards/rog-strix/rog-strix-b550-i-gaming-model/', 'AM4', 'AM4', 'AMD B550', '2 x DDR4, up to 5100 MHz, 64GB max', 'DDR4', '5100+', 'Intel I225-V 2.5Gb LAN', 'WiFi 6 + Bluetooth 5.1', '1 x PCIe x16', '2 x M.2, 4 x SATA 6Gb/s', 'Mini ITX', 60);
 
 -- ----------------------------
 -- Table structure for psus
@@ -250,6 +266,7 @@ CREATE TABLE `psus`  (
   `SATA_connector` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `Dimensions` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `Modular` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `color` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `PSU_compatibility` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `PCIe_connector` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `form_factor` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
@@ -257,17 +274,18 @@ CREATE TABLE `psus`  (
   `efficiency` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `warranty` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `weight` decimal(10, 2) NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_psus_color`(`color` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of psus
 -- ----------------------------
-INSERT INTO `psus` VALUES (1, 'Corsair RM850e 850W 80+ Gold', 549.00, 'https://example.com/images/corsair_rm850e.jpg', 'https://www.corsair.com/us/en/p/psu/cp-9020252-na/rm850e-850-watt-80-plus-gold-fully-modular-atx-power-supply-cp-9020252-na', '2 x 4+4 Pin EPS', '8 x SATA', '150 x 86 x 160 mm', 'Fully Modular', 'ATX 3.0 / PCIe 5.0 Ready', '3 x 6+2 Pin PCIe', 'ATX', 850, '80+ Gold', '10 Years', 1.65);
-INSERT INTO `psus` VALUES (2, 'Cooler Master MWE 650 Bronze V2', 289.00, 'https://example.com/images/cm_mwe650_bronze_v2.jpg', 'https://www.coolermaster.com/catalog/power-supplies/mwe-series/mwe-650-bronze-v2/', '1 x 4+4 Pin EPS', '6 x SATA', '150 x 86 x 140 mm', 'Non-Modular', 'ATX 12V v2.52', '2 x 6+2 Pin PCIe', 'ATX', 650, '80+ Bronze', '5 Years', 1.40);
-INSERT INTO `psus` VALUES (3, 'Be Quiet! Pure Power 12M 750W 80+ Gold', 519.00, 'https://example.com/images/bequiet_purepower12m_750.jpg', 'https://www.bequiet.com/en/powersupply/4174', '2 x 4+4 Pin EPS', '6 x SATA', '160 x 150 x 86 mm', 'Fully Modular', 'ATX 3.0 / PCIe 5.0 Ready', '2 x 6+2 Pin + 1 x 12VHPWR', 'ATX', 750, '80+ Gold', '10 Years', 1.80);
-INSERT INTO `psus` VALUES (4, 'Thermaltake Smart BX1 550W 80+ Bronze', 239.00, 'https://example.com/images/tt_smartbx1_550w.jpg', 'https://www.thermaltake.com/smart-bx1-550w.html', '1 x 4+4 Pin EPS', '5 x SATA', '150 x 86 x 140 mm', 'Non-Modular', 'ATX 12V v2.4', '2 x 6+2 Pin PCIe', 'ATX', 550, '80+ Bronze', '5 Years', 1.35);
-INSERT INTO `psus` VALUES (5, 'Seasonic Focus GX-1000 80+ Gold', 799.00, 'https://example.com/images/seasonic_focus_gx1000.jpg', 'https://seasonic.com/focus-gx', '2 x 4+4 Pin EPS', '10 x SATA', '140 x 150 x 86 mm', 'Fully Modular', 'ATX 3.0 / PCIe 5.0 Ready', '4 x 6+2 Pin + 1 x 12VHPWR', 'ATX', 1000, '80+ Gold', '10 Years', 1.90);
+INSERT INTO `psus` VALUES (1, 'Corsair RM850e 850W 80+ Gold', 549.00, 'https://example.com/images/corsair_rm850e.jpg', 'https://www.corsair.com/us/en/p/psu/cp-9020252-na/rm850e-850-watt-80-plus-gold-fully-modular-atx-power-supply-cp-9020252-na', '2 x 4+4 Pin EPS', '8 x SATA', '150 x 86 x 160 mm', 'Fully Modular', 'Black', 'ATX 3.0 / PCIe 5.0 Ready', '3 x 6+2 Pin PCIe', 'ATX', 850, '80+ Gold', '10 Years', 1.65);
+INSERT INTO `psus` VALUES (2, 'Cooler Master MWE 650 Bronze V2', 289.00, 'https://example.com/images/cm_mwe650_bronze_v2.jpg', 'https://www.coolermaster.com/catalog/power-supplies/mwe-series/mwe-650-bronze-v2/', '1 x 4+4 Pin EPS', '6 x SATA', '150 x 86 x 140 mm', 'Non-Modular', 'Black', 'ATX 12V v2.52', '2 x 6+2 Pin PCIe', 'ATX', 650, '80+ Bronze', '5 Years', 1.40);
+INSERT INTO `psus` VALUES (3, 'Be Quiet! Pure Power 12M 750W 80+ Gold', 519.00, 'https://example.com/images/bequiet_purepower12m_750.jpg', 'https://www.bequiet.com/en/powersupply/4174', '2 x 4+4 Pin EPS', '6 x SATA', '160 x 150 x 86 mm', 'Fully Modular', 'Black', 'ATX 3.0 / PCIe 5.0 Ready', '2 x 6+2 Pin + 1 x 12VHPWR', 'ATX', 750, '80+ Gold', '10 Years', 1.80);
+INSERT INTO `psus` VALUES (4, 'Thermaltake Smart BX1 550W 80+ Bronze', 239.00, 'https://example.com/images/tt_smartbx1_550w.jpg', 'https://www.thermaltake.com/smart-bx1-550w.html', '1 x 4+4 Pin EPS', '5 x SATA', '150 x 86 x 140 mm', 'Non-Modular', 'Black', 'ATX 12V v2.4', '2 x 6+2 Pin PCIe', 'ATX', 550, '80+ Bronze', '5 Years', 1.35);
+INSERT INTO `psus` VALUES (5, 'Seasonic Focus GX-1000 80+ Gold', 799.00, 'https://example.com/images/seasonic_focus_gx1000.jpg', 'https://seasonic.com/focus-gx', '2 x 4+4 Pin EPS', '10 x SATA', '140 x 150 x 86 mm', 'Fully Modular', 'Black', 'ATX 3.0 / PCIe 5.0 Ready', '4 x 6+2 Pin + 1 x 12VHPWR', 'ATX', 1000, '80+ Gold', '10 Years', 1.90);
 
 -- ----------------------------
 -- Table structure for rams
@@ -285,7 +303,7 @@ CREATE TABLE `rams`  (
   `color` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `wattage` int NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of rams
@@ -311,7 +329,7 @@ CREATE TABLE `replies`  (
   INDEX `user_id`(`user_id` ASC) USING BTREE,
   CONSTRAINT `replies_ibfk_1` FOREIGN KEY (`thread_id`) REFERENCES `threads` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `replies_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of replies
@@ -336,7 +354,7 @@ CREATE TABLE `storages`  (
   `nand` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `warranty` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of storages
@@ -361,7 +379,7 @@ CREATE TABLE `threads`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `user_id`(`user_id` ASC) USING BTREE,
   CONSTRAINT `threads_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of threads
@@ -379,7 +397,7 @@ CREATE TABLE `users`  (
   `role` enum('user','admin') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT 'user',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `Email_Address`(`Email_Address` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of users
@@ -388,3 +406,190 @@ INSERT INTO `users` VALUES (3, 'huzir', 'huzir123@gmail.com', '$2b$10$TT10OuIpKM
 INSERT INTO `users` VALUES (4, 'AdminUser', 'admin@example.com', '$2b$10$GJqA2NG/sUQ79xuvyzRRyu7kkstnU6RE/cbT/NzTu8uoNz0o55ZEe', 'admin');
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+
+-- Additional Component Data Insertions
+
+-- Additional CPUs (20 records)
+INSERT INTO cpus (name, brand, price, cores, threads, socket, wattage, cpu_category, image_url) VALUES
+('AMD Ryzen 5 7500F', 'AMD', 799.00, 6, 12, 'AM5', 65, 'consumer', NULL),
+('AMD Ryzen 7 7700X', 'AMD', 1299.00, 8, 16, 'AM5', 105, 'consumer', NULL),
+('AMD Ryzen 9 7950X3D', 'AMD', 2999.00, 16, 32, 'AM5', 120, 'consumer', NULL),
+('Intel Core i5-13400F', 'INTEL', 999.00, 10, 16, 'LGA1700', 65, 'consumer', NULL),
+('Intel Core i7-13700F', 'INTEL', 1599.00, 16, 24, 'LGA1700', 65, 'consumer', NULL),
+('Intel Core i9-13900KS', 'INTEL', 3299.00, 24, 32, 'LGA1700', 150, 'consumer', NULL),
+('AMD Ryzen 3 5300G', 'AMD', 399.00, 4, 8, 'AM4', 65, 'consumer', NULL),
+('AMD Ryzen 5 5500', 'AMD', 499.00, 6, 12, 'AM4', 65, 'consumer', NULL),
+('AMD Ryzen 7 5700G', 'AMD', 799.00, 8, 16, 'AM4', 65, 'consumer', NULL),
+('AMD Ryzen 9 5900X', 'AMD', 1199.00, 12, 24, 'AM4', 105, 'consumer', NULL),
+('Intel Core i3-13100', 'INTEL', 649.00, 4, 8, 'LGA1700', 60, 'consumer', NULL),
+('Intel Core i3-13400', 'INTEL', 849.00, 10, 16, 'LGA1700', 65, 'consumer', NULL),
+('Intel Core i5-13500', 'INTEL', 1149.00, 14, 20, 'LGA1700', 65, 'consumer', NULL),
+('Intel Core i5-14600K', 'INTEL', 1599.00, 14, 20, 'LGA1700', 125, 'consumer', NULL),
+('Intel Core i7-13700K', 'INTEL', 1999.00, 16, 24, 'LGA1700', 125, 'consumer', NULL),
+('Intel Core i9-13900K', 'INTEL', 2799.00, 24, 32, 'LGA1700', 125, 'consumer', NULL),
+('AMD Ryzen 5 4500', 'AMD', 299.00, 6, 6, 'AM4', 65, 'consumer', NULL),
+('AMD Ryzen 5 5600G', 'AMD', 599.00, 6, 12, 'AM4', 65, 'consumer', NULL),
+('AMD Ryzen 7 5700X3D', 'AMD', 1299.00, 8, 16, 'AM4', 105, 'consumer', NULL),
+('Intel Core i5-12400F', 'INTEL', 699.00, 6, 12, 'LGA1700', 65, 'consumer', NULL);
+
+-- Additional GPUs (20 records)
+INSERT INTO gpus (name, brand, price, memory_size, memory_type, power_connectors, wattage, gpu_category, image_url) VALUES
+('MSI GeForce RTX 4070 GAMING X TRIO', 'NVIDIA', 2999.00, 12, 'GDDR6X', '8-pin x 1', 200, 'consumer', NULL),
+('ASUS ROG Strix RTX 4080 OC', 'NVIDIA', 5999.00, 16, 'GDDR6X', '16-pin x 1', 320, 'consumer', NULL),
+('Gigabyte Radeon RX 7900 XT GAMING OC', 'AMD', 3599.00, 20, 'GDDR6', '8-pin x 2', 315, 'consumer', NULL),
+('Sapphire Pulse Radeon RX 6750 XT', 'AMD', 1799.00, 12, 'GDDR6', '8-pin x 1', 250, 'consumer', NULL),
+('PowerColor RX 6600 Fighter', 'AMD', 999.00, 8, 'GDDR6', '8-pin x 1', 180, 'consumer', NULL),
+('ZOTAC Gaming GeForce RTX 4060 Ti Twin Edge', 'NVIDIA', 1899.00, 8, 'GDDR6', '8-pin x 1', 160, 'consumer', NULL),
+('PNY GeForce RTX 4070 Ti Verto', 'NVIDIA', 3599.00, 12, 'GDDR6X', '16-pin x 1', 285, 'consumer', NULL),
+('XFX RX 7800 XT Black Pearl', 'AMD', 2599.00, 16, 'GDDR6', '8-pin x 2', 263, 'consumer', NULL),
+('ASUS TUF Gaming RTX 4090 OC', 'NVIDIA', 9999.00, 24, 'GDDR6X', '16-pin x 1', 450, 'consumer', NULL),
+('Gigabyte Eagle RTX 4060', 'NVIDIA', 1499.00, 8, 'GDDR6', '8-pin x 1', 130, 'consumer', NULL),
+('MSI Gaming GeForce RTX 3060 Ti', 'NVIDIA', 1799.00, 8, 'GDDR6', '12-pin x 1', 200, 'consumer', NULL),
+('Sapphire NITRO+ RX 6950 XT', 'AMD', 2299.00, 16, 'GDDR6', '8-pin x 2', 335, 'consumer', NULL),
+('Palit JetStream RTX 4080', 'NVIDIA', 5599.00, 16, 'GDDR6X', '16-pin x 1', 320, 'consumer', NULL),
+('XFX Speedster RX 6600 XT', 'AMD', 1199.00, 8, 'GDDR6', '8-pin x 1', 160, 'consumer', NULL),
+('ASUS DUAL RTX 4070 OC', 'NVIDIA', 2799.00, 12, 'GDDR6X', '8-pin x 1', 200, 'consumer', NULL),
+('MSI Ventus RTX 3070 Ti OC', 'NVIDIA', 1999.00, 8, 'GDDR6X', '12-pin x 1', 290, 'consumer', NULL),
+('PowerColor Hellhound RX 6650 XT', 'AMD', 899.00, 8, 'GDDR6', '8-pin x 1', 230, 'consumer', NULL),
+('ASRock Phantom Gaming RX 7700 XT', 'AMD', 1999.00, 12, 'GDDR6', '8-pin x 1', 245, 'consumer', NULL),
+('Gigabyte Windforce RTX 3060', 'NVIDIA', 1499.00, 12, 'GDDR6', '8-pin x 1', 170, 'consumer', NULL),
+('Sapphire PULSE RX 7900 XTX', 'AMD', 3999.00, 24, 'GDDR6', '8-pin x 3', 355, 'consumer', NULL);
+
+-- Additional Motherboards (20 records)
+INSERT INTO motherboards (name, price, cpu_socket, chipset, memory_type, form_factor, image_url) VALUES
+('ASUS TUF Gaming X670E-Plus WiFi', 1299.00, 'AM5', 'AMD X670E', 'DDR5', 'ATX', NULL),
+('MSI MAG B760 Tomahawk WiFi', 899.00, 'LGA1700', 'Intel B760', 'DDR5', 'ATX', NULL),
+('Gigabyte AORUS B650 Elite AX', 799.00, 'AM5', 'AMD B650', 'DDR5', 'ATX', NULL),
+('ASRock B550M Pro4', 449.00, 'AM4', 'AMD B550', 'DDR4', 'Micro ATX', NULL),
+('ASUS Prime Z690-P WiFi', 999.00, 'LGA1700', 'Intel Z690', 'DDR5', 'ATX', NULL),
+('MSI PRO B650M-G WiFi', 599.00, 'AM5', 'AMD B650', 'DDR5', 'Micro ATX', NULL),
+('Gigabyte Z790 AORUS ELITE AX', 1099.00, 'LGA1700', 'Intel Z790', 'DDR5', 'ATX', NULL),
+('ASRock X670E Steel Legend', 1199.00, 'AM5', 'AMD X670E', 'DDR5', 'ATX', NULL),
+('ASUS ROG Strix B550-F Gaming WiFi', 799.00, 'AM4', 'AMD B550', 'DDR4', 'ATX', NULL),
+('MSI MAG B660M Mortar WiFi', 749.00, 'LGA1700', 'Intel B660', 'DDR5', 'Micro ATX', NULL),
+('Gigabyte X670 AORUS ELITE', 999.00, 'AM5', 'AMD X670', 'DDR5', 'ATX', NULL),
+('ASUS TUF Gaming H770 WiFi', 849.00, 'LGA1700', 'Intel H770', 'DDR5', 'ATX', NULL),
+('MSI B650 GAMING PLUS WIFI', 749.00, 'AM5', 'AMD B650', 'DDR5', 'ATX', NULL),
+('ASRock Z690 Phantom Gaming ITX/TB4', 1299.00, 'LGA1700', 'Intel Z690', 'DDR5', 'Mini ITX', NULL),
+('Gigabyte B650M DS3H', 499.00, 'AM5', 'AMD B650', 'DDR5', 'Micro ATX', NULL),
+('ASUS Prime B660M-A WiFi', 599.00, 'LGA1700', 'Intel B660', 'DDR5', 'Micro ATX', NULL),
+('MSI MPG X670E Carbon WiFi', 1499.00, 'AM5', 'AMD X670E', 'DDR5', 'ATX', NULL),
+('ASRock B650M PG Riptide WiFi', 699.00, 'AM5', 'AMD B650', 'DDR5', 'Micro ATX', NULL),
+('Gigabyte Z690 Gaming X', 849.00, 'LGA1700', 'Intel Z690', 'DDR4', 'ATX', NULL),
+('ASUS TUF Gaming B660-Plus D4', 649.00, 'LGA1700', 'Intel B660', 'DDR4', 'ATX', NULL);
+
+-- Additional RAMs (20 records)
+INSERT INTO rams (name, price, memory_speed, memory_size, memory_type, color, image_url) VALUES
+('Corsair Vengeance RGB Pro 32GB DDR4 3600MHz', 599.00, '3600MHz', 32, 'DDR4', 'RGB', NULL),
+('G.Skill Ripjaws V 16GB DDR4 3200MHz', 279.00, '3200MHz', 16, 'DDR4', 'Black', NULL),
+('Kingston Fury Beast 32GB DDR5 5200MHz', 749.00, '5200MHz', 32, 'DDR5', 'Black', NULL),
+('Teamgroup T-Force Xtreem 32GB DDR5 7200MHz', 999.00, '7200MHz', 32, 'DDR5', 'Silver', NULL),
+('Patriot Viper Venom 16GB DDR5 6000MHz', 399.00, '6000MHz', 16, 'DDR5', 'Black', NULL),
+('Corsair Dominator Platinum RGB 64GB DDR5 5600MHz', 1499.00, '5600MHz', 64, 'DDR5', 'White', NULL),
+('G.Skill Trident Z Neo 32GB DDR4 3600MHz', 649.00, '3600MHz', 32, 'DDR4', 'Silver', NULL),
+('Kingston FURY Beast 16GB DDR4 2666MHz', 199.00, '2666MHz', 16, 'DDR4', 'Black', NULL),
+('Teamgroup T-Force Dark Za 32GB DDR4 4000MHz', 799.00, '4000MHz', 32, 'DDR4', 'Black', NULL),
+('Patriot Viper Steel 8GB DDR4 3200MHz', 159.00, '3200MHz', 8, 'DDR4', 'Gray', NULL),
+('Corsair Vengeance LPX 8GB DDR4 3000MHz', 139.00, '3000MHz', 8, 'DDR4', 'Black', NULL),
+('G.Skill Trident Z Royal 16GB DDR4 4000MHz', 899.00, '4000MHz', 16, 'DDR4', 'Gold', NULL),
+('Kingston FURY Renegade 32GB DDR5 6400MHz', 899.00, '6400MHz', 32, 'DDR5', 'Black', NULL),
+('Teamgroup T-Force Vulcan Z 16GB DDR4 3200MHz', 249.00, '3200MHz', 16, 'DDR4', 'Red', NULL),
+('Patriot Viper 4 Blackout 64GB DDR4 3600MHz', 1099.00, '3600MHz', 64, 'DDR4', 'Black', NULL),
+('Corsair Vengeance RGB Pro SL 16GB DDR5 5200MHz', 449.00, '5200MHz', 16, 'DDR5', 'White', NULL),
+('G.Skill Ripjaws S5 32GB DDR5 5600MHz', 699.00, '5600MHz', 32, 'DDR5', 'Black', NULL),
+('Kingston FURY Impact 32GB DDR4 2666MHz SO-DIMM', 399.00, '2666MHz', 32, 'DDR4', 'Black', NULL),
+('Teamgroup T-Force Dark Z 16GB DDR4 3600MHz', 349.00, '3600MHz', 16, 'DDR4', 'White', NULL),
+('Patriot Memory Signature 8GB DDR4 2666MHz', 99.00, '2666MHz', 8, 'DDR4', 'Black', NULL);
+
+-- Additional PSUs (20 records)
+INSERT INTO psus (name, price, power, efficiency, modular, form_factor, color, EPS_connector, SATA_connector, PCIe_connector, Dimensions, image_url) VALUES
+('Corsair RM1000e 1000W 80+ Gold', 649.00, 1000, '80+ Gold', 'Fully Modular', 'ATX', 'Black', '2 x 4+4 Pin', '10 x SATA', '4 x 6+2 Pin + 1 x 12VHPWR', '150 x 86 x 180 mm', NULL),
+('Cooler Master MWE 750 Gold V2', 359.00, 750, '80+ Gold', 'Semi-Modular', 'ATX', 'Black', '2 x 4+4 Pin', '6 x SATA', '2 x 6+2 Pin', '150 x 86 x 140 mm', NULL),
+('Be Quiet! Pure Power 11 550W', 299.00, 550, '80+ Gold', 'Semi-Modular', 'ATX', 'Black', '1 x 4+4 Pin', '6 x SATA', '2 x 6+2 Pin', '160 x 150 x 86 mm', NULL),
+('Thermaltake Toughpower GF1 850W', 699.00, 850, '80+ Gold', 'Fully Modular', 'ATX', 'Black', '2 x 4+4 Pin', '9 x SATA', '3 x 6+2 Pin + 1 x 12VHPWR', '140 x 150 x 86 mm', NULL),
+('Seasonic PRIME TX-1000 1000W', 1599.00, 1000, '80+ Titanium', 'Fully Modular', 'ATX', 'Black', '2 x 4+4 Pin', '12 x SATA', '4 x 6+2 Pin + 1 x 12VHPWR', '140 x 170 x 86 mm', NULL),
+('Corsair CX750M 750W 80+ Bronze', 399.00, 750, '80+ Bronze', 'Semi-Modular', 'ATX', 'Black', '2 x 4+4 Pin', '6 x SATA', '2 x 6+2 Pin', '150 x 86 x 160 mm', NULL),
+('Cooler Master MWE 800 White', 449.00, 800, '80+ Gold', 'Fully Modular', 'ATX', 'White', '2 x 4+4 Pin', '8 x SATA', '3 x 6+2 Pin', '150 x 86 x 140 mm', NULL),
+('Be Quiet! Dark Power 13 850W', 1199.00, 850, '80+ Platinum', 'Fully Modular', 'ATX', 'Black', '2 x 4+4 Pin', '8 x SATA', '4 x 6+2 Pin + 1 x 12VHPWR', '160 x 150 x 86 mm', NULL),
+('Thermaltake Smart 700W', 299.00, 700, '80+ White', 'Non-Modular', 'ATX', 'Black', '1 x 4+4 Pin', '5 x SATA', '2 x 6+2 Pin', '150 x 86 x 140 mm', NULL),
+('Seasonic FOCUS GX-650 650W', 549.00, 650, '80+ Gold', 'Fully Modular', 'ATX', 'Black', '1 x 4+4 Pin', '6 x SATA', '2 x 6+2 Pin', '140 x 150 x 86 mm', NULL),
+('Corsair RM850x 850W 80+ Gold', 699.00, 850, '80+ Gold', 'Fully Modular', 'ATX', 'Black', '2 x 4+4 Pin', '9 x SATA', '4 x 6+2 Pin', '150 x 86 x 170 mm', NULL),
+('Cooler Master MasterWatt 550', 229.00, 550, '80+ Bronze', 'Non-Modular', 'ATX', 'Black', '1 x 4+4 Pin', '5 x SATA', '2 x 6+2 Pin', '150 x 86 x 140 mm', NULL),
+('Be Quiet! System Power 9 700W', 399.00, 700, '80+ Gold', 'Semi-Modular', 'ATX', 'Black', '2 x 4+4 Pin', '6 x SATA', '2 x 6+2 Pin', '140 x 150 x 86 mm', NULL),
+('Thermaltake GF1 ARGB 650W', 429.00, 650, '80+ Gold', 'Fully Modular', 'ATX', 'Black', '1 x 4+4 Pin', '7 x SATA', '2 x 6+2 Pin', '140 x 150 x 86 mm', NULL),
+('Seasonic S12III 650W', 329.00, 650, '80+ Bronze', 'Non-Modular', 'ATX', 'Black', '1 x 4+4 Pin', '6 x SATA', '2 x 6+2 Pin', '140 x 150 x 86 mm', NULL),
+('Corsair TX650M 650W', 449.00, 650, '80+ Gold', 'Semi-Modular', 'ATX', 'Black', '1 x 4+4 Pin', '6 x SATA', '2 x 6+2 Pin', '150 x 86 x 160 mm', NULL),
+('Cooler Master Silent Gold 1200W', 1299.00, 1200, '80+ Gold', 'Fully Modular', 'ATX', 'Black', '2 x 4+4 Pin', '12 x SATA', '6 x 6+2 Pin', '170 x 150 x 86 mm', NULL),
+('Be Quiet! Pure Power L8 600W', 269.00, 600, '80+ Bronze', 'Non-Modular', 'ATX', 'Black', '1 x 4+4 Pin', '6 x SATA', '2 x 6+2 Pin', '150 x 140 x 86 mm', NULL),
+('Thermaltake TR2 1200W', 899.00, 1200, '80+ Gold', 'Semi-Modular', 'ATX', 'Black', '2 x 4+4 Pin', '10 x SATA', '4 x 6+2 Pin', '180 x 150 x 86 mm', NULL),
+('Seasonic Prime TX-850 850W', 1399.00, 850, '80+ Titanium', 'Fully Modular', 'ATX', 'Black', '2 x 4+4 Pin', '10 x SATA', '3 x 6+2 Pin + 1 x 12VHPWR', '170 x 150 x 86 mm', NULL);
+
+-- Additional Cases (20 records)
+INSERT INTO cases (name, price, form_factor, side_panel, color, gpu_length_max_mm, cpu_cooler_height_max_mm, dimensions, image_url) VALUES
+('Lian Li Lancool III', 849.00, 'ATX Mid Tower', 'Tempered Glass', 'Black', 398, 180, '475 x 230 x 480 mm', NULL),
+('NZXT H5 Flow', 449.00, 'ATX Mid Tower', 'Mesh', 'Black', 365, 165, '460 x 210 x 460 mm', NULL),
+('Fractal Design Meshify C', 399.00, 'ATX Mid Tower', 'Tempered Glass', 'Black', 315, 172, '440 x 224 x 479 mm', NULL),
+('Corsair 4000D Airflow', 349.00, 'ATX Mid Tower', 'Tempered Glass', 'White', 360, 170, '453 x 230 x 466 mm', NULL),
+('be quiet! Pure Base 500DX', 499.00, 'ATX Mid Tower', 'Tempered Glass', 'Black', 369, 190, '468 x 231 x 501 mm', NULL),
+('Thermaltake View 71', 799.00, 'ATX Full Tower', 'Tempered Glass', 'Black', 310, 185, '590 x 246 x 569 mm', NULL),
+('Phanteks Eclipse P400A', 379.00, 'ATX Mid Tower', 'Tempered Glass', 'Black', 400, 170, '465 x 200 x 455 mm', NULL),
+('Lian Li LANCOOL 216', 399.00, 'ATX Mid Tower', 'Mesh', 'Black', 400, 180, '445 x 230 x 485 mm', NULL),
+('NZXT H7 Flow', 599.00, 'ATX Mid Tower', 'Mesh', 'Black', 400, 185, '480 x 230 x 505 mm', NULL),
+('Cooler Master MasterBox Q300L', 199.00, 'Micro ATX', 'Acrylic', 'Black', 350, 159, '389 x 194 x 399 mm', NULL),
+('Fractal Design Pop Air', 299.00, 'ATX Mid Tower', 'Tempered Glass', 'White', 340, 170, '450 x 215 x 440 mm', NULL),
+('Corsair 275R Airflow', 299.00, 'ATX Mid Tower', 'Tempered Glass', 'Black', 370, 170, '445 x 230 x 466 mm', NULL),
+('Lian Li PC-O11 Dynamic', 699.00, 'ATX Mid Tower', 'Tempered Glass', 'Black', 422, 167, '465 x 285 x 460 mm', NULL),
+('NZXT H210i', 269.00, 'Mini ITX', 'Tempered Glass', 'Black', 305, 165, '349 x 210 x 375 mm', NULL),
+('Silverstone RL06', 299.00, 'ATX Mid Tower', 'Tempered Glass', 'Black', 395, 167, '473 x 200 x 440 mm', NULL),
+('Cooler Master Silencio S600', 449.00, 'ATX Mid Tower', 'Aluminum', 'Black', 414, 165, '467 x 220 x 505 mm', NULL),
+('Phanteks P500A', 549.00, 'ATX Mid Tower', 'Tempered Glass', 'Black', 440, 175, '500 x 240 x 520 mm', NULL),
+('Lian Li PC-V3000', 1299.00, 'ATX Full Tower', 'Aluminum', 'Black', 470, 190, '285 x 650 x 630 mm', NULL),
+('NZXT H510', 399.00, 'ATX Mid Tower', 'Tempered Glass', 'Black', 381, 165, '428 x 210 x 460 mm', NULL),
+('Fractal Design Define 7 Compact', 549.00, 'ATX Mid Tower', 'Solid Panel', 'Black', 315, 169, '440 x 224 x 448 mm', NULL);
+
+-- Additional CPU Coolers (20 records)
+INSERT INTO cpucoolers (name, price, liquid_cooling, dimension, color, height_mm, heatpipes, wattage, image_url) VALUES
+('Noctua NH-D15', 599.00, 0, '161mm (H) x 150mm (W) x 135mm (D)', 'Black/Brown', 161, '6 heatpipes', 250, NULL),
+('be quiet! Dark Rock Pro 4', 399.00, 0, '163mm (H) x 139mm (W) x 111mm (D)', 'Black', 163, '7 heatpipes', 250, NULL),
+('Corsair H150i Elite Capellix', 799.00, 1, '397mm (L) x 120mm (W) x 27mm (H)', 'RGB', 397, 'Pump-based', 280, NULL),
+('Arctic Liquid Freezer II 240', 329.00, 1, '277mm (L) x 120mm (W) x 38mm (H)', 'Black', 277, 'Pump-based', 250, NULL),
+('Thermalright Phantom Spirit 120 SE', 199.00, 0, '154mm (H) x 120mm (W) x 71mm (D)', 'Silver', 154, '5 heatpipes', 220, NULL),
+('ID-COOLING SE-224-XTS', 149.00, 0, '155mm (H) x 120mm (W) x 73mm (D)', 'Black', 155, '4 heatpipes', 180, NULL),
+('Scythe Fuma 2', 249.00, 0, '154.5mm (H) x 130mm (W) x 140mm (D)', 'Black', 154, '6 heatpipes', 190, NULL),
+('Cooler Master Hyper 212 RGB', 199.00, 0, '158.8mm (H) x 120mm (W) x 77.6mm (D)', 'Black', 158, '4 heatpipes', 150, NULL),
+('Thermaltake TH240 ARGB', 449.00, 1, '277mm (L) x 120mm (W) x 27mm (H)', 'RGB', 277, 'Pump-based', 280, NULL),
+('Deepcool AK620', 169.00, 0, '160mm (H) x 120mm (W) x 97mm (D)', 'Black', 160, '6 heatpipes', 220, NULL),
+('Noctua NH-U9S', 349.00, 0, '125mm (H) x 95mm (W) x 71mm (D)', 'Black/Brown', 125, '5 heatpipes', 130, NULL),
+('be quiet! Pure Rock Slim 2', 169.00, 0, '145mm (H) x 90mm (W) x 68mm (D)', 'Black', 145, '4 heatpipes', 120, NULL),
+('Corsair H100i RGB PLATINUM', 649.00, 1, '322mm (L) x 120mm (W) x 27mm (H)', 'RGB', 322, 'Pump-based', 240, NULL),
+('Arctic Freezer 34 eSports DUO', 249.00, 0, '157mm (H) x 120mm (W) x 96mm (D)', 'Black', 157, '4 heatpipes', 210, NULL),
+('Zalman CNPS9900B MAX', 329.00, 0, '154mm (H) x 135mm (W) x 110mm (D)', 'Black', 154, '6 heatpipes', 250, NULL),
+('Thermaltake TH120 ARGB', 349.00, 1, '277mm (L) x 120mm (W) x 27mm (H)', 'RGB', 277, 'Pump-based', 150, NULL),
+('ID-COOLING AURAFLOW X 240', 399.00, 1, '277mm (L) x 120mm (W) x 27mm (H)', 'RGB', 277, 'Pump-based', 250, NULL),
+('Scythe Mugen 5 Rev.B', 229.00, 0, '154.5mm (H) x 130mm (W) x 140mm (D)', 'Black', 154, '6 heatpipes', 220, NULL),
+('Cooler Master MasterLiquid ML240L', 299.00, 1, '277mm (L) x 119.6mm (W) x 27.2mm (H)', 'Black', 277, 'Pump-based', 200, NULL),
+('Noctua NH-L12S', 299.00, 0, '145mm (H) x 125mm (W) x 70mm (D)', 'Black/Brown', 145, '5 heatpipes', 145, NULL);
+
+-- Additional Storage (20 records)
+INSERT INTO storages (name, price, interface, form_factor, capacity, storage_type, readwrite, image_url) VALUES
+('Samsung 990 Pro 2TB', 1299.00, 'M.2 PCIe 4.0 x4', 'M.2', '2TB', 'M.2 SSD', 'Read 7450MB/s / Write 6900MB/s', NULL),
+('WD Black SN850X 1TB', 899.00, 'M.2 PCIe 4.0 x4', 'M.2', '1TB', 'M.2 SSD', 'Read 7300MB/s / Write 6600MB/s', NULL),
+('Crucial P5 Plus 2TB', 849.00, 'M.2 PCIe 4.0 x4', 'M.2', '2TB', 'M.2 SSD', 'Read 6600MB/s / Write 5000MB/s', NULL),
+('Kingston NV2 1TB', 449.00, 'M.2 PCIe 4.0 x4', 'M.2', '1TB', 'M.2 SSD', 'Read 3500MB/s / Write 2800MB/s', NULL),
+('Teamgroup MP44L 2TB', 699.00, 'M.2 PCIe 4.0 x4', 'M.2', '2TB', 'M.2 SSD', 'Read 5000MB/s / Write 4500MB/s', NULL),
+('Samsung 870 EVO 1TB', 599.00, 'SATA', '2.5"', '1TB', 'SATA SSD', 'Read 560MB/s / Write 530MB/s', NULL),
+('WD Blue SN580 500GB', 349.00, 'M.2 PCIe 4.0 x4', 'M.2', '500GB', 'M.2 SSD', 'Read 4000MB/s / Write 3000MB/s', NULL),
+('SK Hynix Gold P31 1TB', 649.00, 'M.2 PCIe 3.0 x4', 'M.2', '1TB', 'M.2 SSD', 'Read 3500MB/s / Write 3200MB/s', NULL),
+('Seagate FireCuda 530 1TB', 999.00, 'M.2 PCIe 4.0 x4', 'M.2', '1TB', 'M.2 SSD', 'Read 7300MB/s / Write 6900MB/s', NULL),
+('Intel 670p 2TB', 799.00, 'M.2 PCIe 3.0 x4', 'M.2', '2TB', 'M.2 SSD', 'Read 3500MB/s / Write 3000MB/s', NULL),
+('Kingston Fury Renegade 4TB', 1999.00, 'M.2 PCIe 4.0 x4', 'M.2', '4TB', 'M.2 SSD', 'Read 7300MB/s / Write 7000MB/s', NULL),
+('WD Red SA500 500GB', 399.00, 'M.2 SATA', 'M.2', '500GB', 'M.2 SSD', 'Read 560MB/s / Write 530MB/s', NULL),
+('Samsung 970 Pro 512GB', 449.00, 'M.2 PCIe 3.0 x4', 'M.2', '512GB', 'M.2 SSD', 'Read 3500MB/s / Write 2700MB/s', NULL),
+('Corsair MP600 Pro XT 1TB', 849.00, 'M.2 PCIe 4.0 x4', 'M.2', '1TB', 'M.2 SSD', 'Read 7100MB/s / Write 6800MB/s', NULL),
+('Teamgroup MP33 2TB', 449.00, 'M.2 PCIe 3.0 x4', 'M.2', '2TB', 'M.2 SSD', 'Read 2100MB/s / Write 1700MB/s', NULL),
+('Crucial MX500 2TB', 699.00, 'SATA', '2.5"', '2TB', 'SATA SSD', 'Read 560MB/s / Write 510MB/s', NULL),
+('Sabrent Rocket 4.0 4TB', 2199.00, 'M.2 PCIe 4.0 x4', 'M.2', '4TB', 'M.2 SSD', 'Read 7000MB/s / Write 6850MB/s', NULL),
+('WD Blue 5TB', 599.00, 'SATA', '3.5"', '5TB', 'HDD', 'Read/Write 150MB/s', NULL),
+('Seagate Barracuda 4TB', 399.00, 'SATA', '3.5"', '4TB', 'HDD', 'Read/Write 210MB/s', NULL),
+('SK Hynix Platinum P41 2TB', 1499.00, 'M.2 PCIe 4.0 x4', 'M.2', '2TB', 'M.2 SSD', 'Read 7000MB/s / Write 6500MB/s', NULL);

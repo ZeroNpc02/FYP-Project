@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="public/css/bootstrap.min.css" />
   <link rel="stylesheet" href="public/css/dropdown.css" />
   <link rel="stylesheet" href="public/css/cases.css" />
+  <script src="public/js/security.js" defer></script>
 </head>
 <body class="dark">
   <div class="wrapper d-flex">
@@ -14,52 +15,323 @@
     <main class="main-content flex-grow-1 py-5">
       <div class="flex-container py-5">
         <div class="container-fluid">
-          <h2 class="text-center mb-4">Select Your PC CASE</h2>
+          <h2 class="text-center mb-4">Select Your PC Case</h2>
           <div class="row">
-            <div id="cases-grid" class="column"></div>
-            <div id="pagination-container" class="mt-4 text-center"></div>
+            <div class="col-md-3">
+              <!-- Sidebar Filters Section -->
+              <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="mb-0">Filters</h5>
+                  <button class="btn btn-sm btn-outline-secondary" id="clearFiltersBtn">Clear All</button>
+                </div>
+                <div class="card-body">
+                  <!-- Form Factor Filter -->
+                  <div class="mb-3">
+                    <label class="form-label">Form Factor</label>
+                    <select class="form-select" id="formFactorFilter">
+                      <option value="">All Form Factors</option>
+                    </select>
+                  </div>
+
+                  <!-- Side Panel Filter -->
+                  <div class="mb-3">
+                    <label class="form-label">Side Panel</label>
+                    <select class="form-select" id="sidePanelFilter">
+                      <option value="">All Side Panels</option>
+                    </select>
+                  </div>
+
+                  <!-- Color Filter -->
+                  <div class="mb-3">
+                    <label class="form-label">Color</label>
+                    <select class="form-select" id="colorFilter">
+                      <option value="">All Colors</option>
+                    </select>
+                  </div>
+
+                  <!-- GPU Max Length Range Filter -->
+                  <div class="mb-3">
+                    <label class="form-label">GPU Max Length (mm)</label>
+                    <div class="row g-2">
+                      <div class="col-6">
+                        <input type="number" class="form-control" id="minGpuLengthFilter" placeholder="Min (170)" min="170" max="420">
+                      </div>
+                      <div class="col-6">
+                        <input type="number" class="form-control" id="maxGpuLengthFilter" placeholder="Max (420)" min="170" max="420">
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- CPU Cooler Max Height Range Filter -->
+                  <div class="mb-3">
+                    <label class="form-label">CPU Cooler Max Height (mm)</label>
+                    <div class="row g-2">
+                      <div class="col-6">
+                        <input type="number" class="form-control" id="minCoolerHeightFilter" placeholder="Min (29)" min="29" max="185">
+                      </div>
+                      <div class="col-6">
+                        <input type="number" class="form-control" id="maxCoolerHeightFilter" placeholder="Max (185)" min="29" max="185">
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Price Range Filter -->
+                  <div class="mb-3">
+                    <label class="form-label">Price Range (RM)</label>
+                    <div class="row g-2">
+                      <div class="col-6">
+                        <input type="number" class="form-control" id="minPriceFilter" placeholder="Min (0)" min="0" max="20000" step="10">
+                      </div>
+                      <div class="col-6">
+                        <input type="number" class="form-control" id="maxPriceFilter" placeholder="Max (20000)" min="0" max="20000" step="10">
+                      </div>
+                    </div>
+                  </div>
+
+                  <button class="btn btn-primary w-100" id="applyFiltersBtn">Apply Filters</button>
+                </div>
+              </div>
+
+              <!-- Search Bar -->
+              <div class="card mb-4">
+                <div class="card-body">
+                  <div class="input-group">
+                    <span class="input-group-text">🔍</span>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search PC Cases...">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-md-9">
+              <div id="case-grid" class="row"></div>
+              <div id="pagination-container" class="mt-4 text-center"></div>
+            </div>
           </div>
         </div>
       </div>
     </main>
   </div>
-
   <div id="dropdown-container"></div>
-
+  
   <script>
     const itemsPerPage = 15;
-    let casesList = [];
+    let cases = [];
+    let filteredCases = [];
+    let currentPage = 1;
+
+    function populateFilterOptions() {
+      // Get unique values for filters
+      const formFactors = [...new Set(cases.map(c => c.form_factor).filter(Boolean))];
+      const sidePanels = [...new Set(cases.map(c => c.side_panel).filter(Boolean))];
+      const colors = [...new Set(cases.map(c => c.color).filter(Boolean))];
+      
+      // Sort options alphabetically
+      formFactors.sort();
+      sidePanels.sort();
+      colors.sort();
+      
+      // Populate form factor filter
+      const formFactorFilter = document.getElementById('formFactorFilter');
+      formFactors.forEach(formFactor => {
+        const option = document.createElement('option');
+        option.value = formFactor;
+        option.textContent = formFactor;
+        formFactorFilter.appendChild(option);
+      });
+      
+      // Populate side panel filter
+      const sidePanelFilter = document.getElementById('sidePanelFilter');
+      sidePanels.forEach(sidePanel => {
+        const option = document.createElement('option');
+        option.value = sidePanel;
+        option.textContent = sidePanel;
+        sidePanelFilter.appendChild(option);
+      });
+      
+      // Populate color filter
+      const colorFilter = document.getElementById('colorFilter');
+      colors.forEach(color => {
+        const option = document.createElement('option');
+        option.value = color;
+        option.textContent = color;
+        colorFilter.appendChild(option);
+      });
+    }
+
+    function applyFilters() {
+      const formFactor = document.getElementById('formFactorFilter').value;
+      const sidePanel = document.getElementById('sidePanelFilter').value;
+      const color = document.getElementById('colorFilter').value;
+      const minGpuLength = parseInt(document.getElementById('minGpuLengthFilter').value) || 0;
+      const maxGpuLength = parseInt(document.getElementById('maxGpuLengthFilter').value) || 500;
+      const minCoolerHeight = parseInt(document.getElementById('minCoolerHeightFilter').value) || 0;
+      const maxCoolerHeight = parseInt(document.getElementById('maxCoolerHeightFilter').value) || 300;
+      const minPrice = parseFloat(document.getElementById('minPriceFilter').value) || 0;
+      const maxPrice = parseFloat(document.getElementById('maxPriceFilter').value) || 20000;
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+      filteredCases = cases.filter(caseItem => {
+        // Form Factor filter
+        if (formFactor && caseItem.form_factor !== formFactor) return false;
+        
+        // Side Panel filter
+        if (sidePanel && caseItem.side_panel !== sidePanel) return false;
+        
+        // Color filter
+        if (color && caseItem.color !== color) return false;
+        
+        // GPU Max Length filter - case must support AT LEAST the min length specified
+        // And should NOT exceed the max length (for size preference)
+        if (caseItem.gpu_max_length_mm) {
+          if (caseItem.gpu_max_length_mm < minGpuLength) return false;
+          if (caseItem.gpu_max_length_mm > maxGpuLength) return false;
+        }
+        
+        // CPU Cooler Max Height filter - same logic
+        if (caseItem.cpu_cooler_max_height_mm) {
+          if (caseItem.cpu_cooler_max_height_mm < minCoolerHeight) return false;
+          if (caseItem.cpu_cooler_max_height_mm > maxCoolerHeight) return false;
+        }
+        
+        // Price range filter
+        if (caseItem.price < minPrice || caseItem.price > maxPrice) return false;
+        
+        // Search filter
+        if (searchTerm && !caseItem.name.toLowerCase().includes(searchTerm)) return false;
+        
+        return true;
+      });
+      
+      currentPage = 1;
+      renderList(currentPage);
+      renderPagination(filteredCases.length, currentPage);
+    }
+
+    function clearFilters() {
+      document.getElementById('formFactorFilter').value = '';
+      document.getElementById('sidePanelFilter').value = '';
+      document.getElementById('colorFilter').value = '';
+      document.getElementById('minGpuLengthFilter').value = '';
+      document.getElementById('maxGpuLengthFilter').value = '';
+      document.getElementById('minCoolerHeightFilter').value = '';
+      document.getElementById('maxCoolerHeightFilter').value = '';
+      document.getElementById('minPriceFilter').value = '';
+      document.getElementById('maxPriceFilter').value = '';
+      document.getElementById('searchInput').value = '';
+
+      filteredCases = [...cases];
+      currentPage = 1;
+      renderList(currentPage);
+      renderPagination(cases.length, currentPage);
+    }
 
     function renderList(page = 1) {
       const start = (page - 1) * itemsPerPage;
       const end = start + itemsPerPage;
-      const currentItems = casesList.slice(start, end);
+      const currentItems = filteredCases.slice(start, end);
 
-      const grid = document.getElementById("cases-grid");
+      const grid = document.getElementById("case-grid");
       grid.innerHTML = "";
 
-      currentItems.forEach(pcCase => {
-        const col = document.createElement("div");
-        col.className = "cases-col";
+      if (currentItems.length === 0) {
+        grid.innerHTML = "<p class='text-center text-muted'>No PC Cases found matching your criteria.</p>";
+        return;
+      }
 
-        const imageUrl = pcCase.image_url?.startsWith("http")
-          ? pcCase.image_url
-          : `/images/${pcCase.image_url?.replace(/^images[\\/]/, "")}`;
+      currentItems.forEach(caseItem => {
+        const col = document.createElement("div");
+        col.className = "col-md-6 col-lg-4 mb-4";
+
+        const imageUrl = caseItem.image_url?.startsWith("http")
+          ? caseItem.image_url
+          : `/images/${caseItem.image_url?.replace(/^images[\/\\]/, "")}`;
+
+        // Create specs HTML
+        let specsHtml = '';
+        
+        if (caseItem.form_factor) {
+          specsHtml += `
+            <div class="d-flex justify-content-between">
+              <span>Form Factor: ${caseItem.form_factor}</span>
+            </div>
+          `;
+        }
+        
+        if (caseItem.side_panel) {
+          specsHtml += `
+            <div class="d-flex justify-content-between">
+              <span>Side Panel: ${caseItem.side_panel}</span>
+            </div>
+          `;
+        }
+        
+        if (caseItem.color) {
+          specsHtml += `
+            <div class="d-flex justify-content-between">
+              <span>Color: ${caseItem.color}</span>
+            </div>
+          `;
+        }
+        
+        if (caseItem.gpu_max_length_mm) {
+          specsHtml += `
+            <div class="d-flex justify-content-between">
+              <span>Max GPU: ${caseItem.gpu_max_length_mm}mm</span>
+            </div>
+          `;
+        }
+        
+        if (caseItem.cpu_cooler_max_height_mm) {
+          specsHtml += `
+            <div class="d-flex justify-content-between">
+              <span>Max Cooler: ${caseItem.cpu_cooler_max_height_mm}mm</span>
+            </div>
+          `;
+        }
+        
+        if (caseItem.expansion_slot) {
+          specsHtml += `
+            <div class="d-flex justify-content-between">
+              <span>Slots: ${caseItem.expansion_slot}</span>
+            </div>
+          `;
+        }
+        
+        if (caseItem.dimensions) {
+          specsHtml += `
+            <div class="d-flex justify-content-between">
+              <span>Dimensions: ${caseItem.dimensions}</span>
+            </div>
+          `;
+        }
 
         col.innerHTML = `
-          <div class="cases-card text-center shadow-sm p-3 mb-4 rounded">
-            <img src="${imageUrl}" alt="${pcCase.name}" width="250" class="mb-2">
-            <h6 class="fw-semibold">${pcCase.name}</h6>
-            <p class="text-success fw-bold">RM ${parseFloat(pcCase.price).toFixed(2)}</p>
+          <div class="case-card text-center shadow-sm p-3 mb-4 rounded h-100">
+            <img src="${imageUrl}" alt="${caseItem.name}" width="250" class="mb-2" onerror="this.src='https://via.placeholder.com/250x200?text=No+Image'">
+            <h6 class="fw-semibold">${caseItem.name}</h6>
+            <div class="case-specs text-muted small">
+              ${specsHtml}
+            </div>
+            <p class="text-success fw-bold mt-2">RM ${parseFloat(caseItem.price).toFixed(2)}</p>
             <button class="btn btn-sm btn-primary add-button">Add</button>
           </div>
         `;
 
         col.querySelector('.add-button').addEventListener('click', () => {
           const selectedCase = {
-            name: pcCase.name,
-            price: parseFloat(pcCase.price),
-            image_url: pcCase.image_url
+            name: caseItem.name,
+            price: parseFloat(caseItem.price),
+            image_url: caseItem.image_url,
+            form_factor: caseItem.form_factor,
+            side_panel: caseItem.side_panel,
+            color: caseItem.color,
+            dimensions: caseItem.dimensions,
+            gpu_max_length_mm: caseItem.gpu_max_length_mm,
+            cpu_cooler_max_height_mm: caseItem.cpu_cooler_max_height_mm,
+            expansion_slot: caseItem.expansion_slot,
+            mainboard_support: caseItem.mainboard_support
           };
           localStorage.setItem('selectedCase', JSON.stringify(selectedCase));
           window.location.href = 'build.html';
@@ -74,37 +346,94 @@
       const container = document.getElementById("pagination-container");
       container.innerHTML = "";
 
-      for (let i = 1; i <= totalPages; i++) {
-        const btn = document.createElement("button");
-        btn.className = `btn mx-1 ${i === currentPage ? "btn-primary" : "btn-outline-primary"}`;
-        btn.textContent = i;
-        btn.onclick = () => {
-          renderList(i);
-          renderPagination(totalItems, i);
+      if (totalItems <= 1) return;
+
+      // Previous button
+      if (currentPage > 1) {
+        const prevBtn = document.createElement("button");
+        prevBtn.className = "btn mx-1 btn-outline-primary";
+        prevBtn.textContent = "Previous";
+        prevBtn.onclick = () => {
+          renderList(currentPage - 1);
+          renderPagination(totalItems, currentPage - 1);
         };
-        container.appendChild(btn);
+        container.appendChild(prevBtn);
+      }
+
+      // Page numbers
+      for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+          const btn = document.createElement("button");
+          btn.className = `btn mx-1 ${i === currentPage ? "btn-primary" : "btn-outline-primary"}`;
+          btn.textContent = i;
+          btn.onclick = () => {
+            currentPage = i;
+            renderList(currentPage);
+            renderPagination(totalItems, currentPage);
+          };
+          container.appendChild(btn);
+        } else if (i === currentPage - 3 || i === currentPage + 3) {
+          const dots = document.createElement("span");
+          dots.textContent = "...";
+          dots.className = "mx-1";
+          container.appendChild(dots);
+        }
+      }
+
+      // Next button
+      if (currentPage < totalPages) {
+        const nextBtn = document.createElement("button");
+        nextBtn.className = "btn mx-1 btn-outline-primary";
+        nextBtn.textContent = "Next";
+        nextBtn.onclick = () => {
+          currentPage++;
+          renderList(currentPage);
+          renderPagination(totalItems, currentPage);
+        };
+        container.appendChild(nextBtn);
       }
     }
 
+    // Event listeners
+    document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
+    document.getElementById('clearFiltersBtn').addEventListener('click', clearFilters);
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+
+    // Auto-apply on filter change
+    ['formFactorFilter', 'sidePanelFilter', 'colorFilter'].forEach(id => {
+      document.getElementById(id).addEventListener('change', applyFilters);
+    });
+
+    // Debounced input for numeric filters
+    ['minGpuLengthFilter', 'maxGpuLengthFilter', 'minCoolerHeightFilter', 'maxCoolerHeightFilter', 'minPriceFilter', 'maxPriceFilter'].forEach(id => {
+      document.getElementById(id).addEventListener('input', () => {
+        clearTimeout(window.filterTimeout);
+        window.filterTimeout = setTimeout(applyFilters, 500);
+      });
+    });
+
+    // Initialize
     fetch('http://localhost:3001/api/cases')
       .then(res => res.json())
       .then(data => {
-        casesList = data;
-        if (casesList.length > 0) {
-          renderList();
-          renderPagination(casesList.length);
+        cases = data;
+        filteredCases = [...cases];
+        if (cases.length > 0) {
+          populateFilterOptions();
+          renderList(currentPage);
+          renderPagination(cases.length, currentPage);
         } else {
-          document.getElementById("cases-grid").innerHTML =
+          document.getElementById("case-grid").innerHTML =
             "<p class='text-center text-muted'>No PC Cases found.</p>";
         }
       })
       .catch(err => {
         console.error('Failed to load PC Cases:', err);
-        document.getElementById("cases-grid").innerHTML =
+        document.getElementById("case-grid").innerHTML =
           "<p class='text-center text-danger'>Failed to load PC Cases.</p>";
       });
   </script>
-
+  
   <script src="public/js/bootstrap.bundle.min.js"></script>
   <script src="public/js/common.js"></script>
 </body>
