@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="public/css/bootstrap.min.css" />
   <link rel="stylesheet" href="public/css/dropdown.css" />
   <link rel="stylesheet" href="public/css/ram.css" />
+  <script src="public/js/security.js" defer></script>
 </head>
 <body class="dark">
   <div class="wrapper d-flex">
@@ -16,27 +17,188 @@
         <div class="container-fluid">
           <h2 class="text-center mb-4">Select Your RAM</h2>
           <div class="row">
-            <div id="ram-grid" class="column"></div>
+            <div class="col-12">
+              <!-- Advanced Filters Section -->
+              <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="mb-0">Advanced Filters</h5>
+                  <button class="btn btn-sm btn-outline-secondary" id="clearFiltersBtn">Clear All</button>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-3">
+                      <label class="form-label">Memory Type</label>
+                      <select class="form-select" id="memoryTypeFilter">
+                        <option value="">All Types</option>
+                      </select>
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label">Memory Speed</label>
+                      <select class="form-select" id="memorySpeedFilter">
+                        <option value="">All Speeds</option>
+                      </select>
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label">Memory Size</label>
+                      <select class="form-select" id="memorySizeFilter">
+                        <option value="">All Sizes</option>
+                      </select>
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label">Color</label>
+                      <select class="form-select" id="colorFilter">
+                        <option value="">All Colors</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="row mt-3">
+                    <div class="col-md-6">
+                      <label class="form-label">Price Range</label>
+                      <div class="input-group">
+                        <input type="number" class="form-control" id="minPriceFilter" placeholder="Min RM">
+                        <span class="input-group-text">to</span>
+                        <input type="number" class="form-control" id="maxPriceFilter" placeholder="Max RM 20000">
+                      </div>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                      <button class="btn btn-primary" id="applyFiltersBtn">Apply Filters</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Search Bar -->
+              <div class="row mb-4">
+                <div class="col-12">
+                  <div class="input-group">
+                    <span class="input-group-text">🔍</span>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search RAMs...">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div id="ram-grid" class="col-12"></div>
             <div id="pagination-container" class="mt-4 text-center"></div>
           </div>
         </div>
       </div>
     </main>
   </div>
-
   <div id="dropdown-container"></div>
-
   <script>
     const itemsPerPage = 15;
     let rams = [];
+    let filteredRams = [];
+    let currentPage = 1;
+
+    function populateFilterOptions() {
+      // Get unique values for filters
+      const memoryTypes = [...new Set(rams.map(ram => ram.memory_type))].sort();
+      const memorySpeeds = [...new Set(rams.map(ram => ram.memory_speed))].sort();
+      const memorySizes = [...new Set(rams.map(ram => ram.memory_size))].sort((a, b) => a - b);
+      const colors = [...new Set(rams.map(ram => ram.color).filter(color => color))].sort();
+
+      // Populate memory type filter
+      const memoryTypeFilter = document.getElementById('memoryTypeFilter');
+      memoryTypes.forEach(type => {
+        const option = document.createElement('option');
+        option.value = type;
+        option.textContent = type;
+        memoryTypeFilter.appendChild(option);
+      });
+
+      // Populate memory speed filter
+      const memorySpeedFilter = document.getElementById('memorySpeedFilter');
+      memorySpeeds.forEach(speed => {
+        const option = document.createElement('option');
+        option.value = speed;
+        option.textContent = speed;
+        memorySpeedFilter.appendChild(option);
+      });
+
+      // Populate memory size filter
+      const memorySizeFilter = document.getElementById('memorySizeFilter');
+      memorySizes.forEach(size => {
+        const option = document.createElement('option');
+        option.value = size;
+        option.textContent = `${size}GB`;
+        memorySizeFilter.appendChild(option);
+      });
+
+      // Populate color filter
+      const colorFilter = document.getElementById('colorFilter');
+      colors.forEach(color => {
+        const option = document.createElement('option');
+        option.value = color;
+        option.textContent = color;
+        colorFilter.appendChild(option);
+      });
+    }
+
+    function applyFilters() {
+      const memoryType = document.getElementById('memoryTypeFilter').value;
+      const memorySpeed = document.getElementById('memorySpeedFilter').value;
+      const memorySize = document.getElementById('memorySizeFilter').value;
+      const color = document.getElementById('colorFilter').value;
+      const minPrice = parseFloat(document.getElementById('minPriceFilter').value) || 0;
+      const maxPrice = parseFloat(document.getElementById('maxPriceFilter').value) || 20000;
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+      filteredRams = rams.filter(ram => {
+        // Memory Type filter
+        if (memoryType && ram.memory_type !== memoryType) return false;
+
+        // Memory Speed filter
+        if (memorySpeed && ram.memory_speed !== memorySpeed) return false;
+
+        // Memory Size filter
+        if (memorySize && ram.memory_size != parseInt(memorySize)) return false;
+
+        // Color filter
+        if (color && ram.color !== color) return false;
+
+        // Price range filter
+        const ramPrice = parseFloat(ram.price);
+        if (ramPrice < minPrice || ramPrice > maxPrice) return false;
+
+        // Search filter
+        if (searchTerm && !ram.name.toLowerCase().includes(searchTerm)) return false;
+
+        return true;
+      });
+
+      currentPage = 1;
+      renderList(currentPage);
+      renderPagination(filteredRams.length, currentPage);
+    }
+
+    function clearFilters() {
+      document.getElementById('memoryTypeFilter').value = '';
+      document.getElementById('memorySpeedFilter').value = '';
+      document.getElementById('memorySizeFilter').value = '';
+      document.getElementById('colorFilter').value = '';
+      document.getElementById('minPriceFilter').value = '';
+      document.getElementById('maxPriceFilter').value = '';
+      document.getElementById('searchInput').value = '';
+
+      filteredRams = [...rams];
+      currentPage = 1;
+      renderList(currentPage);
+      renderPagination(rams.length, currentPage);
+    }
 
     function renderList(page = 1) {
       const start = (page - 1) * itemsPerPage;
       const end = start + itemsPerPage;
-      const currentItems = rams.slice(start, end);
+      const currentItems = filteredRams.slice(start, end);
 
       const grid = document.getElementById("ram-grid");
       grid.innerHTML = "";
+
+      if (currentItems.length === 0) {
+        grid.innerHTML = "<p class='text-center text-muted'>No RAMs found matching your criteria.</p>";
+        return;
+      }
 
       currentItems.forEach(ram => {
         const col = document.createElement("div");
@@ -44,13 +206,23 @@
 
         const imageUrl = ram.image_url?.startsWith("http")
           ? ram.image_url
-          : `/images/${ram.image_url?.replace(/^images[\\/]/, "")}`;
+          : `/images/${ram.image_url?.replace(/^images[\\\/]/, "")}`;
 
         col.innerHTML = `
           <div class="ram-card text-center shadow-sm p-3 mb-4 rounded">
-            <img src="${imageUrl}" alt="${ram.name}" width="250" class="mb-2">
+            <img src="${imageUrl}" alt="${ram.name}" width="250" class="mb-2" onerror="this.src='https://via.placeholder.com/250x200?text=No+Image'">
             <h6 class="fw-semibold">${ram.name}</h6>
-            <p class="text-success fw-bold">RM ${parseFloat(ram.price).toFixed(2)}</p>
+            <div class="ram-specs text-muted small">
+              <div class="d-flex justify-content-between">
+                <span>Type: ${ram.memory_type}</span>
+                <span>Speed: ${ram.memory_speed}</span>
+              </div>
+              <div class="d-flex justify-content-between">
+                <span>Size: ${ram.memory_size}GB</span>
+                ${ram.color ? `<span>Color: ${ram.color}</span>` : ''}
+              </div>
+            </div>
+            <p class="text-success fw-bold mt-2">RM ${parseFloat(ram.price).toFixed(2)}</p>
             <button class="btn btn-sm btn-primary add-button">Add</button>
           </div>
         `;
@@ -59,7 +231,11 @@
           const selectedRAM = {
             name: ram.name,
             price: parseFloat(ram.price),
-            image_url: ram.image_url
+            image_url: ram.image_url,
+            memory_type: ram.memory_type,
+            memory_speed: ram.memory_speed,
+            memory_size: ram.memory_size,
+            color: ram.color
           };
           localStorage.setItem('selectedRAM', JSON.stringify(selectedRAM));
           window.location.href = 'build.html';
@@ -74,25 +250,81 @@
       const container = document.getElementById("pagination-container");
       container.innerHTML = "";
 
-      for (let i = 1; i <= totalPages; i++) {
-        const btn = document.createElement("button");
-        btn.className = `btn mx-1 ${i === currentPage ? "btn-primary" : "btn-outline-primary"}`;
-        btn.textContent = i;
-        btn.onclick = () => {
-          renderList(i);
-          renderPagination(totalItems, i);
+      if (totalItems <= 1) return;
+
+      // Previous button
+      if (currentPage > 1) {
+        const prevBtn = document.createElement("button");
+        prevBtn.className = "btn mx-1 btn-outline-primary";
+        prevBtn.textContent = "Previous";
+        prevBtn.onclick = () => {
+          renderList(currentPage - 1);
+          renderPagination(totalItems, currentPage - 1);
         };
-        container.appendChild(btn);
+        container.appendChild(prevBtn);
+      }
+
+      // Page numbers
+      for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+          const btn = document.createElement("button");
+          btn.className = `btn mx-1 ${i === currentPage ? "btn-primary" : "btn-outline-primary"}`;
+          btn.textContent = i;
+          btn.onclick = () => {
+            currentPage = i;
+            renderList(currentPage);
+            renderPagination(totalItems, currentPage);
+          };
+          container.appendChild(btn);
+        } else if (i === currentPage - 3 || i === currentPage + 3) {
+          const dots = document.createElement("span");
+          dots.textContent = "...";
+          dots.className = "mx-1";
+          container.appendChild(dots);
+        }
+      }
+
+      // Next button
+      if (currentPage < totalPages) {
+        const nextBtn = document.createElement("button");
+        nextBtn.className = "btn mx-1 btn-outline-primary";
+        nextBtn.textContent = "Next";
+        nextBtn.onclick = () => {
+          currentPage++;
+          renderList(currentPage);
+          renderPagination(totalItems, currentPage);
+        };
+        container.appendChild(nextBtn);
       }
     }
 
+    // Event listeners
+    document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
+    document.getElementById('clearFiltersBtn').addEventListener('click', clearFilters);
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+
+    // Auto-apply on filter change
+    ['memoryTypeFilter', 'memorySpeedFilter', 'memorySizeFilter', 'colorFilter'].forEach(id => {
+      document.getElementById(id).addEventListener('change', applyFilters);
+    });
+
+    ['minPriceFilter', 'maxPriceFilter'].forEach(id => {
+      document.getElementById(id).addEventListener('input', () => {
+        clearTimeout(window.filterTimeout);
+        window.filterTimeout = setTimeout(applyFilters, 500);
+      });
+    });
+
+    // Initialize
     fetch('http://localhost:3001/api/rams')
       .then(res => res.json())
       .then(data => {
         rams = data;
+        filteredRams = [...rams];
         if (rams.length > 0) {
-          renderList();
-          renderPagination(rams.length);
+          populateFilterOptions();
+          renderList(currentPage);
+          renderPagination(rams.length, currentPage);
         } else {
           document.getElementById("ram-grid").innerHTML =
             "<p class='text-center text-muted'>No RAMs found.</p>";

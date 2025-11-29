@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="public/css/bootstrap.min.css" />
   <link rel="stylesheet" href="public/css/dropdown.css" />
   <link rel="stylesheet" href="public/css/psu.css" />
+  <script src="public/js/security.js" defer></script>
 </head>
 <body class="dark">
   <div class="wrapper d-flex">
@@ -16,40 +17,262 @@
         <div class="container-fluid">
           <h2 class="text-center mb-4">Select Your Power Supply Unit (PSU)</h2>
           <div class="row">
-            <div id="psu-grid" class="column"></div>
-            <div id="pagination-container" class="mt-4 text-center"></div>
+            <div class="col-md-3">
+              <!-- Sidebar Filters Section -->
+              <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="mb-0">Filters</h5>
+                  <button class="btn btn-sm btn-outline-secondary" id="clearFiltersBtn">Clear All</button>
+                </div>
+                <div class="card-body">
+                  <!-- Form Factor Filter -->
+                  <div class="mb-3">
+                    <label class="form-label">Form Factor</label>
+                    <select class="form-select" id="formFactorFilter">
+                      <option value="">All Form Factors</option>
+                    </select>
+                  </div>
+
+                  <!-- Power Range Filter -->
+                  <div class="mb-3">
+                    <label class="form-label">Power (Watts)</label>
+                    <div class="row g-2">
+                      <div class="col-6">
+                        <input type="number" class="form-control" id="minPowerFilter" placeholder="Min (W)" min="0" max="2000">
+                      </div>
+                      <div class="col-6">
+                        <input type="number" class="form-control" id="maxPowerFilter" placeholder="Max (W)" min="0" max="2000">
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Efficiency Filter -->
+                  <div class="mb-3">
+                    <label class="form-label">Efficiency Rating</label>
+                    <select class="form-select" id="efficiencyFilter">
+                      <option value="">All Ratings</option>
+                    </select>
+                  </div>
+
+                  <!-- Modular Type Filter -->
+                  <div class="mb-3">
+                    <label class="form-label">Modular Type</label>
+                    <select class="form-select" id="modularFilter">
+                      <option value="">All Types</option>
+                    </select>
+                  </div>
+
+                  <!-- Color Filter -->
+                  <div class="mb-3">
+                    <label class="form-label">Color</label>
+                    <select class="form-select" id="colorFilter">
+                      <option value="">All Colors</option>
+                    </select>
+                  </div>
+
+                  <!-- Price Range Filter -->
+                  <div class="mb-3">
+                    <label class="form-label">Price Range</label>
+                    <div class="row g-2">
+                      <div class="col-6">
+                        <input type="number" class="form-control" id="minPriceFilter" placeholder="Min (RM)" min="0" step="10">
+                      </div>
+                      <div class="col-6">
+                        <input type="number" class="form-control" id="maxPriceFilter" placeholder="Max (RM)" min="0" step="10">
+                      </div>
+                    </div>
+                  </div>
+
+                  <button class="btn btn-primary w-100" id="applyFiltersBtn">Apply Filters</button>
+                </div>
+              </div>
+
+              <!-- Search Bar -->
+              <div class="card mb-4">
+                <div class="card-body">
+                  <div class="input-group">
+                    <span class="input-group-text">🔍</span>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search PSUs...">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-md-9">
+              <div id="psu-grid" class="row"></div>
+              <div id="pagination-container" class="mt-4 text-center"></div>
+            </div>
           </div>
         </div>
       </div>
     </main>
   </div>
   <div id="dropdown-container"></div>
-
+  
   <script>
     const itemsPerPage = 15;
     let psus = [];
+    let filteredPsus = [];
+    let currentPage = 1;
+
+    function populateFilterOptions() {
+      // Get unique values for filters
+      const formFactors = [...new Set(psus.map(psu => psu.form_factor).filter(Boolean))];
+      const efficiencyRatings = [...new Set(psus.map(psu => psu.efficiency).filter(Boolean))];
+      const modularTypes = [...new Set(psus.map(psu => psu.Modular).filter(Boolean))];
+      const colors = [...new Set(psus.map(psu => psu.color).filter(Boolean))];
+
+      // Sort options alphabetically
+      formFactors.sort();
+      efficiencyRatings.sort((a, b) => {
+        // Sort by efficiency rating order (80+ Titanium > Platinum > Gold > Bronze)
+        const order = {'80+ Titanium': 1, '80+ Platinum': 2, '80+ Gold': 3, '80+ Bronze': 4};
+        return (order[a] || 99) - (order[b] || 99);
+      });
+      modularTypes.sort();
+      colors.sort();
+
+      // Populate form factor filter
+      const formFactorFilter = document.getElementById('formFactorFilter');
+      formFactors.forEach(formFactor => {
+        const option = document.createElement('option');
+        option.value = formFactor;
+        option.textContent = formFactor;
+        formFactorFilter.appendChild(option);
+      });
+
+      // Populate efficiency filter
+      const efficiencyFilter = document.getElementById('efficiencyFilter');
+      efficiencyRatings.forEach(efficiency => {
+        const option = document.createElement('option');
+        option.value = efficiency;
+        option.textContent = efficiency;
+        efficiencyFilter.appendChild(option);
+      });
+
+      // Populate modular filter
+      const modularFilter = document.getElementById('modularFilter');
+      modularTypes.forEach(modular => {
+        const option = document.createElement('option');
+        option.value = modular;
+        option.textContent = modular;
+        modularFilter.appendChild(option);
+      });
+
+      // Populate color filter
+      const colorFilter = document.getElementById('colorFilter');
+      colors.forEach(color => {
+        const option = document.createElement('option');
+        option.value = color;
+        option.textContent = color;
+        colorFilter.appendChild(option);
+      });
+    }
+
+    function applyFilters() {
+      const formFactor = document.getElementById('formFactorFilter').value;
+      const minPower = parseInt(document.getElementById('minPowerFilter').value) || 0;
+      const maxPower = parseInt(document.getElementById('maxPowerFilter').value) || 2000;
+      const efficiency = document.getElementById('efficiencyFilter').value;
+      const modular = document.getElementById('modularFilter').value;
+      const color = document.getElementById('colorFilter').value;
+      const minPrice = parseFloat(document.getElementById('minPriceFilter').value) || 0;
+      const maxPrice = parseFloat(document.getElementById('maxPriceFilter').value) || 20000;
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+      filteredPsus = psus.filter(psu => {
+        // Form Factor filter
+        if (formFactor && psu.form_factor !== formFactor) return false;
+
+        // Power range filter
+        const psuPower = parseInt(psu.power) || 0;
+        if (psuPower < minPower || psuPower > maxPower) return false;
+
+        // Efficiency filter
+        if (efficiency && psu.efficiency !== efficiency) return false;
+
+        // Modular filter
+        if (modular && psu.Modular !== modular) return false;
+
+        // Color filter
+        if (color && psu.color !== color) return false;
+
+        // Price range filter
+        const psuPrice = parseFloat(psu.price);
+        if (psuPrice < minPrice || psuPrice > maxPrice) return false;
+
+        // Search filter
+        if (searchTerm && !psu.name.toLowerCase().includes(searchTerm)) return false;
+
+        return true;
+      });
+
+      currentPage = 1;
+      renderList(currentPage);
+      renderPagination(filteredPsus.length, currentPage);
+    }
+
+    function clearFilters() {
+      document.getElementById('formFactorFilter').value = '';
+      document.getElementById('minPowerFilter').value = '';
+      document.getElementById('maxPowerFilter').value = '';
+      document.getElementById('efficiencyFilter').value = '';
+      document.getElementById('modularFilter').value = '';
+      document.getElementById('colorFilter').value = '';
+      document.getElementById('minPriceFilter').value = '';
+      document.getElementById('maxPriceFilter').value = '';
+      document.getElementById('searchInput').value = '';
+
+      filteredPsus = [...psus];
+      currentPage = 1;
+      renderList(currentPage);
+      renderPagination(psus.length, currentPage);
+    }
 
     function renderList(page = 1) {
       const start = (page - 1) * itemsPerPage;
       const end = start + itemsPerPage;
-      const currentItems = psus.slice(start, end);
+      const currentItems = filteredPsus.slice(start, end);
 
       const grid = document.getElementById("psu-grid");
       grid.innerHTML = "";
 
+      if (currentItems.length === 0) {
+        grid.innerHTML = "<p class='text-center text-muted'>No PSUs found matching your criteria.</p>";
+        return;
+      }
+
       currentItems.forEach(psu => {
         const col = document.createElement("div");
-        col.className = "psu-col";
+        col.className = "col-md-6 col-lg-4 mb-4";
 
         const imageUrl = psu.image_url?.startsWith("http")
           ? psu.image_url
-          : `/images/${psu.image_url?.replace(/^images[\\/]/, "")}`;
+          : `/images/${psu.image_url?.replace(/^images[\/\\]/, "")}`;
 
         col.innerHTML = `
-          <div class="psu-card text-center shadow-sm p-3 mb-4 rounded">
-            <img src="${imageUrl}" alt="${psu.name}" width="250" class="mb-2">
+          <div class="psu-card text-center shadow-sm p-3 mb-4 rounded h-100">
+            <img src="${imageUrl}" alt="${psu.name}" width="250" class="mb-2" onerror="this.src='https://via.placeholder.com/250x200?text=No+Image'">
             <h6 class="fw-semibold">${psu.name}</h6>
-            <p class="text-success fw-bold">RM ${parseFloat(psu.price).toFixed(2)}</p>
+            <div class="psu-specs text-muted small">
+              <div class="d-flex justify-content-between">
+                <span>Power: ${psu.power || 'N/A'}W</span>
+              </div>
+              <div class="d-flex justify-content-between">
+                <span>Efficiency: ${psu.efficiency || 'N/A'}</span>
+              </div>
+              <div class="d-flex justify-content-between">
+                <span>Modular: ${psu.Modular || 'N/A'}</span>
+              </div>
+              <div class="d-flex justify-content-between">
+                <span>Form Factor: ${psu.form_factor || 'N/A'}</span>
+              </div>
+              <div class="d-flex justify-content-between">
+                <span>Color: ${psu.color || 'N/A'}</span>
+              </div>
+            </div>
+            <p class="text-success fw-bold mt-2">RM ${parseFloat(psu.price).toFixed(2)}</p>
             <button class="btn btn-sm btn-primary add-button">Add</button>
           </div>
         `;
@@ -58,7 +281,15 @@
           const selectedPSU = {
             name: psu.name,
             price: parseFloat(psu.price),
-            image_url: psu.image_url
+            image_url: psu.image_url,
+            power: psu.power,
+            efficiency: psu.efficiency,
+            Modular: psu.Modular,
+            form_factor: psu.form_factor,
+            color: psu.color,
+            EPS_connector: psu.EPS_connector,
+            SATA_connector: psu.SATA_connector,
+            Dimensions: psu.Dimensions
           };
           localStorage.setItem('selectedPSU', JSON.stringify(selectedPSU));
           window.location.href = 'build.html';
@@ -73,25 +304,82 @@
       const container = document.getElementById("pagination-container");
       container.innerHTML = "";
 
-      for (let i = 1; i <= totalPages; i++) {
-        const btn = document.createElement("button");
-        btn.className = `btn mx-1 ${i === currentPage ? "btn-primary" : "btn-outline-primary"}`;
-        btn.textContent = i;
-        btn.onclick = () => {
-          renderList(i);
-          renderPagination(totalItems, i);
+      if (totalItems <= 1) return;
+
+      // Previous button
+      if (currentPage > 1) {
+        const prevBtn = document.createElement("button");
+        prevBtn.className = "btn mx-1 btn-outline-primary";
+        prevBtn.textContent = "Previous";
+        prevBtn.onclick = () => {
+          renderList(currentPage - 1);
+          renderPagination(totalItems, currentPage - 1);
         };
-        container.appendChild(btn);
+        container.appendChild(prevBtn);
+      }
+
+      // Page numbers
+      for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+          const btn = document.createElement("button");
+          btn.className = `btn mx-1 ${i === currentPage ? "btn-primary" : "btn-outline-primary"}`;
+          btn.textContent = i;
+          btn.onclick = () => {
+            currentPage = i;
+            renderList(currentPage);
+            renderPagination(totalItems, currentPage);
+          };
+          container.appendChild(btn);
+        } else if (i === currentPage - 3 || i === currentPage + 3) {
+          const dots = document.createElement("span");
+          dots.textContent = "...";
+          dots.className = "mx-1";
+          container.appendChild(dots);
+        }
+      }
+
+      // Next button
+      if (currentPage < totalPages) {
+        const nextBtn = document.createElement("button");
+        nextBtn.className = "btn mx-1 btn-outline-primary";
+        nextBtn.textContent = "Next";
+        nextBtn.onclick = () => {
+          currentPage++;
+          renderList(currentPage);
+          renderPagination(totalItems, currentPage);
+        };
+        container.appendChild(nextBtn);
       }
     }
 
+    // Event listeners
+    document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
+    document.getElementById('clearFiltersBtn').addEventListener('click', clearFilters);
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+
+    // Auto-apply on filter change
+    ['formFactorFilter', 'efficiencyFilter', 'modularFilter', 'colorFilter'].forEach(id => {
+      document.getElementById(id).addEventListener('change', applyFilters);
+    });
+
+    // Debounced input for numeric filters
+    ['minPowerFilter', 'maxPowerFilter', 'minPriceFilter', 'maxPriceFilter'].forEach(id => {
+      document.getElementById(id).addEventListener('input', () => {
+        clearTimeout(window.filterTimeout);
+        window.filterTimeout = setTimeout(applyFilters, 500);
+      });
+    });
+
+    // Initialize
     fetch('http://localhost:3001/api/psus')
       .then(res => res.json())
       .then(data => {
         psus = data;
+        filteredPsus = [...psus];
         if (psus.length > 0) {
-          renderList();
-          renderPagination(psus.length);
+          populateFilterOptions();
+          renderList(currentPage);
+          renderPagination(psus.length, currentPage);
         } else {
           document.getElementById("psu-grid").innerHTML =
             "<p class='text-center text-muted'>No PSUs found.</p>";

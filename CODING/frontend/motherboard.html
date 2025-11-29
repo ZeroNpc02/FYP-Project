@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PC Builder - Motherboard</title>
+  <title>HardwareForge - Motherboards</title>
   <link rel="stylesheet" href="public/css/bootstrap.min.css" />
   <link rel="stylesheet" href="public/css/dropdown.css" />
   <link rel="stylesheet" href="public/css/motherboard.css" />
+  <script src="public/js/security.js" defer></script>
 </head>
 <body class="dark">
   <div class="wrapper d-flex">
@@ -16,7 +17,67 @@
         <div class="container-fluid">
           <h2 class="text-center mb-4">Select Your Motherboard</h2>
           <div class="row">
-            <div id="motherboard-grid" class="column"></div>
+            <div class="col-12">
+              <!-- Advanced Filters Section -->
+              <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="mb-0">Advanced Filters</h5>
+                  <button class="btn btn-sm btn-outline-secondary" id="clearFiltersBtn">Clear All</button>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-3">
+                      <label class="form-label">Chipset</label>
+                      <select class="form-select" id="chipsetFilter">
+                        <option value="">All Chipsets</option>
+                      </select>
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label">Form Factor</label>
+                      <select class="form-select" id="formFactorFilter">
+                        <option value="">All Form Factors</option>
+                      </select>
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label">CPU Socket</label>
+                      <select class="form-select" id="cpuSocketFilter">
+                        <option value="">All Sockets</option>
+                      </select>
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label">Memory Type</label>
+                      <select class="form-select" id="memoryTypeFilter">
+                        <option value="">All Memory Types</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="row mt-3">
+                    <div class="col-md-3">
+                      <label class="form-label">Min Price</label>
+                      <input type="number" class="form-control" id="minPrice" placeholder="RM 0">
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label">Max Price</label>
+                      <input type="number" class="form-control" id="maxPrice" placeholder="RM 20,000">
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                      <button class="btn btn-primary" id="applyFiltersBtn">Apply Filters</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Search Bar -->
+              <div class="row mb-4">
+                <div class="col-12">
+                  <div class="input-group">
+                    <span class="input-group-text">🔍</span>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search motherboards...">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div id="motherboard-grid" class="col-12"></div>
             <div id="pagination-container" class="mt-4 text-center"></div>
           </div>
         </div>
@@ -24,82 +85,272 @@
     </main>
   </div>
   <div id="dropdown-container"></div>
-<script>
-  const itemsPerPage = 15;
-  let motherboards = [];
+  <script>
+    const itemsPerPage = 15;
+    let motherboards = [];
+    let filteredMotherboards = [];
+    let currentPage = 1;
 
-  function renderList(page = 1) {
-    const start = (page - 1) * itemsPerPage;
-    const end = start + itemsPerPage;
-    const currentItems = motherboards.slice(start, end);
+    function populateFilterOptions() {
+      // Get unique values for filters
+      const chipsets = [...new Set(motherboards.map(mobo => mobo.chipset))].sort();
+      const formFactors = [...new Set(motherboards.map(mobo => mobo.form_factor))].sort();
+      const cpuSockets = [...new Set(motherboards.map(mobo => mobo.cpu_socket))].sort();
+      const memoryTypes = [...new Set(motherboards.map(mobo => mobo.memory_type))].sort();
 
-    const grid = document.getElementById("motherboard-grid");
-    grid.innerHTML = ""; // Clear existing
-
-    currentItems.forEach(motherboards => {
-      const col = document.createElement("div");
-      col.className = "motherboard-col";
-
-      const imageUrl = motherboards.image_url?.startsWith("http")
-        ? motherboards.image_url
-        : `/images/${motherboards.image_url?.replace(/^images[\\/]/, "")}`;
-
-      col.innerHTML = `
-        <div class="motherboard-card text-center shadow-sm p-3 mb-4 rounded">
-          <img src="${imageUrl}" alt="${motherboards.name}" width="250" class="mb-2">
-          <h6 class="fw-semibold">${motherboards.name}</h6>
-          <p class="text-success fw-bold">RM ${parseFloat(motherboards.price).toFixed(2)}</p>
-          <button class="btn btn-sm btn-primary add-button">Add</button>
-        </div>
-      `;
-
-      col.querySelector('.add-button').addEventListener('click', () => {
-        const selectedMotherboard = {
-          name: motherboards.name,
-          price: parseFloat(motherboards.price),
-          image_url: motherboards.image_url
-        };
-        localStorage.setItem('selectedMotherboard', JSON.stringify(selectedMotherboard));
-        window.location.href = 'build.html';
+      // Populate chipset filter
+      const chipsetFilter = document.getElementById('chipsetFilter');
+      chipsets.forEach(chipset => {
+        if (chipset) {
+          const option = document.createElement('option');
+          option.value = chipset;
+          option.textContent = chipset;
+          chipsetFilter.appendChild(option);
+        }
       });
 
-      grid.appendChild(col);
-    });
-  }
+      // Populate form factor filter
+      const formFactorFilter = document.getElementById('formFactorFilter');
+      formFactors.forEach(formFactor => {
+        if (formFactor) {
+          const option = document.createElement('option');
+          option.value = formFactor;
+          option.textContent = formFactor;
+          formFactorFilter.appendChild(option);
+        }
+      });
 
-  function renderPagination(totalItems) {
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    const container = document.getElementById("pagination-container");
-    container.innerHTML = "";
+      // Populate CPU socket filter
+      const cpuSocketFilter = document.getElementById('cpuSocketFilter');
+      cpuSockets.forEach(socket => {
+        if (socket) {
+          const option = document.createElement('option');
+          option.value = socket;
+          option.textContent = socket;
+          cpuSocketFilter.appendChild(option);
+        }
+      });
 
-    for (let i = 1; i <= totalPages; i++) {
-      const btn = document.createElement("button");
-      btn.className = "btn btn-outline-primary mx-1";
-      btn.textContent = i;
-      btn.onclick = () => {
-          renderList(i);
-          renderPagination(totalItems, i);
-        };
-        container.appendChild(btn);
+      // Populate memory type filter
+      const memoryTypeFilter = document.getElementById('memoryTypeFilter');
+      memoryTypes.forEach(memoryType => {
+        if (memoryType) {
+          const option = document.createElement('option');
+          option.value = memoryType;
+          option.textContent = memoryType;
+          memoryTypeFilter.appendChild(option);
+        }
+      });
     }
-  }
 
-  fetch('http://localhost:3001/api/motherboards')
+    function applyFilters() {
+      const chipset = document.getElementById('chipsetFilter').value;
+      const formFactor = document.getElementById('formFactorFilter').value;
+      const cpuSocket = document.getElementById('cpuSocketFilter').value;
+      const memoryType = document.getElementById('memoryTypeFilter').value;
+      const minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
+      const maxPrice = parseFloat(document.getElementById('maxPrice').value) || 20000;
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+      filteredMotherboards = motherboards.filter(mobo => {
+        // Chipset filter
+        if (chipset && mobo.chipset !== chipset) return false;
+        
+        // Form Factor filter
+        if (formFactor && mobo.form_factor !== formFactor) return false;
+        
+        // CPU Socket filter
+        if (cpuSocket && mobo.cpu_socket !== cpuSocket) return false;
+        
+        // Memory Type filter
+        if (memoryType && mobo.memory_type !== memoryType) return false;
+        
+        // Price range filter
+        const moboPrice = parseFloat(mobo.price);
+        if (moboPrice < minPrice || moboPrice > maxPrice) return false;
+        
+        // Search filter
+        if (searchTerm && !mobo.name.toLowerCase().includes(searchTerm)) return false;
+        
+        return true;
+      });
+      
+      currentPage = 1;
+      displayMotherboards();
+      setupPagination();
+    }
+
+    function clearFilters() {
+      document.getElementById('chipsetFilter').value = '';
+      document.getElementById('formFactorFilter').value = '';
+      document.getElementById('cpuSocketFilter').value = '';
+      document.getElementById('memoryTypeFilter').value = '';
+      document.getElementById('minPrice').value = '';
+      document.getElementById('maxPrice').value = '';
+      document.getElementById('searchInput').value = '';
+
+      filteredMotherboards = [...motherboards];
+      currentPage = 1;
+      displayMotherboards();
+      setupPagination();
+    }
+
+    function displayMotherboards() {
+      const start = (currentPage - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+      const currentItems = filteredMotherboards.slice(start, end);
+
+      const grid = document.getElementById("motherboard-grid");
+      grid.innerHTML = "";
+
+      if (currentItems.length === 0) {
+        grid.innerHTML = "<p class='text-center text-muted'>No motherboards found matching your criteria.</p>";
+        return;
+      }
+
+      currentItems.forEach(mobo => {
+        const col = document.createElement("div");
+        col.className = "motherboard-col";
+
+        const imageUrl = mobo.image_url?.startsWith("http")
+          ? mobo.image_url
+          : `/images/${mobo.image_url?.replace(/^images[\\/]/, "")}`;
+
+        col.innerHTML = `
+          <div class="motherboard-card text-center shadow-sm p-3 mb-4 rounded">
+            <img src="${imageUrl}" alt="${mobo.name}" width="250" class="mb-2" onerror="this.src='https://via.placeholder.com/250x200?text=No+Image'">
+            <h6 class="fw-semibold">${mobo.name}</h6>
+            <div class="motherboard-specs text-muted small">
+              <div class="d-flex justify-content-between">
+                <span>Chipset: ${mobo.chipset || 'N/A'}</span>
+              </div>
+              <div class="d-flex justify-content-between">
+                <span>Socket: ${mobo.cpu_socket || 'N/A'}</span>
+              </div>
+              <div class="d-flex justify-content-between">
+                <span>Form Factor: ${mobo.form_factor || 'N/A'}</span>
+              </div>
+              <div class="d-flex justify-content-between">
+                <span>Memory: ${mobo.memory_type || 'N/A'}</span>
+              </div>
+            </div>
+            <p class="text-success fw-bold mt-2">RM ${parseFloat(mobo.price).toFixed(2)}</p>
+            <button class="btn btn-sm btn-primary add-button">Add</button>
+          </div>
+        `;
+
+        col.querySelector('.add-button').addEventListener('click', () => {
+          const selectedMotherboard = {
+            name: mobo.name,
+            price: parseFloat(mobo.price),
+            image_url: mobo.image_url,
+            chipset: mobo.chipset,
+            cpu_socket: mobo.cpu_socket,
+            form_factor: mobo.form_factor,
+            memory_type: mobo.memory_type,
+            memory: mobo.memory,
+            expansion_slot: mobo.expansion_slot,
+            storage_interface: mobo.storage_interface
+          };
+          localStorage.setItem('selectedMotherboard', JSON.stringify(selectedMotherboard));
+          window.location.href = 'build.html';
+        });
+
+        grid.appendChild(col);
+      });
+    }
+
+    function setupPagination() {
+      const totalPages = Math.ceil(filteredMotherboards.length / itemsPerPage);
+      const container = document.getElementById("pagination-container");
+      container.innerHTML = "";
+
+      if (totalPages <= 1) return;
+
+      // Previous button
+      if (currentPage > 1) {
+        const prevBtn = document.createElement("button");
+        prevBtn.className = "btn mx-1 btn-outline-primary";
+        prevBtn.textContent = "Previous";
+        prevBtn.onclick = () => {
+          currentPage--;
+          displayMotherboards();
+          setupPagination();
+        };
+        container.appendChild(prevBtn);
+      }
+
+      // Page numbers
+      for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+          const btn = document.createElement("button");
+          btn.className = `btn mx-1 ${i === currentPage ? "btn-primary" : "btn-outline-primary"}`;
+          btn.textContent = i;
+          btn.onclick = () => {
+            currentPage = i;
+            displayMotherboards();
+            setupPagination();
+          };
+          container.appendChild(btn);
+        } else if (i === currentPage - 3 || i === currentPage + 3) {
+          const dots = document.createElement("span");
+          dots.textContent = "...";
+          dots.className = "mx-1";
+          container.appendChild(dots);
+        }
+      }
+
+      // Next button
+      if (currentPage < totalPages) {
+        const nextBtn = document.createElement("button");
+        nextBtn.className = "btn mx-1 btn-outline-primary";
+        nextBtn.textContent = "Next";
+        nextBtn.onclick = () => {
+          currentPage++;
+          displayMotherboards();
+          setupPagination();
+        };
+        container.appendChild(nextBtn);
+      }
+    }
+
+    // Event listeners
+    document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
+    document.getElementById('clearFiltersBtn').addEventListener('click', clearFilters);
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+
+    // Auto-apply on filter change
+    ['chipsetFilter', 'formFactorFilter', 'cpuSocketFilter', 'memoryTypeFilter'].forEach(id => {
+      document.getElementById(id).addEventListener('change', applyFilters);
+    });
+
+    // Debounced input for price filters
+    ['minPrice', 'maxPrice'].forEach(id => {
+      document.getElementById(id).addEventListener('input', () => {
+        clearTimeout(window.filterTimeout);
+        window.filterTimeout = setTimeout(applyFilters, 500);
+      });
+    });
+
+    // Initialize
+    fetch('http://localhost:3001/api/motherboards')
       .then(res => res.json())
       .then(data => {
         motherboards = data;
+        filteredMotherboards = [...motherboards];
         if (motherboards.length > 0) {
-          renderList();
-          renderPagination(motherboards.length);
+          populateFilterOptions();
+          displayMotherboards();
+          setupPagination();
         } else {
           document.getElementById("motherboard-grid").innerHTML =
-            "<p class='text-center text-muted'>No Motherboards found.</p>";
+            "<p class='text-center text-muted'>No motherboards found.</p>";
         }
       })
       .catch(err => {
-        console.error('Failed to load Motherboards:', err);
+        console.error('Failed to load motherboards:', err);
         document.getElementById("motherboard-grid").innerHTML =
-          "<p class='text-center text-danger'>Failed to load Motherboards.</p>";
+          "<p class='text-center text-danger'>Failed to load motherboards.</p>";
       });
   </script>
 
