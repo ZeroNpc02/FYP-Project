@@ -17,9 +17,9 @@
         <div class="container-fluid">
           <h2 class="text-center mb-4">Select Your Motherboard</h2>
           <div class="row">
-            <div class="col-12">
+            <div class="col-md-2" id="filter-column">
               <!-- Advanced Filters Section -->
-              <div class="card mb-4">
+              <div class="card mb-4 filter-card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                   <h5 class="mb-0">Advanced Filters</h5>
                   <button class="btn btn-sm btn-outline-secondary" id="clearFiltersBtn">Clear All</button>
@@ -66,19 +66,20 @@
                   </div>
                 </div>
               </div>
-
-              <!-- Search Bar -->
-              <div class="row mb-4">
-                <div class="col-12">
+            </div>
+            <!-- Search Bar -->
+            <div class="col-md-10">
+              <div class="row mb-2">
+                <div class="col-10">
                   <div class="input-group">
                     <span class="input-group-text">🔍</span>
-                    <input type="text" class="form-control" id="searchInput" placeholder="Search motherboards...">
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search CPUs...">
                   </div>
                 </div>
               </div>
+              <div id="motherboard-grid"></div>
+              <div id="pagination-container" class="mt-4 text-center"></div>
             </div>
-            <div id="motherboard-grid" class="col-12"></div>
-            <div id="pagination-container" class="mt-4 text-center"></div>
           </div>
         </div>
       </div>
@@ -212,13 +213,15 @@
         const col = document.createElement("div");
         col.className = "motherboard-col";
 
-        const imageUrl = mobo.image_url?.startsWith("http")
-          ? mobo.image_url
-          : `/images/${mobo.image_url?.replace(/^images[\\/]/, "")}`;
+        const imageUrl = mobo.image_url && mobo.image_url.trim() !== ""
+          ? (mobo.image_url.startsWith("http")
+              ? mobo.image_url
+              : `/images/${mobo.image_url.replace(/^images[\\/]/, "")}`)
+          : "https://via.placeholder.com/250x200?text=No+Image";
 
         col.innerHTML = `
           <div class="motherboard-card text-center shadow-sm p-3 mb-4 rounded">
-            <img src="${imageUrl}" alt="${mobo.name}" width="250" class="mb-2" onerror="this.src='https://via.placeholder.com/250x200?text=No+Image'">
+            <img src="${imageUrl}" alt="${mobo.name}" width="250" class="mb-2" onerror="this.src='https://via.placeholder.com/250x200?text=No+Image'; this.onerror=null;">
             <h6 class="fw-semibold">${mobo.name}</h6>
             <div class="motherboard-specs text-muted small">
               <div class="d-flex justify-content-between">

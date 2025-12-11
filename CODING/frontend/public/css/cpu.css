@@ -8,7 +8,6 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 250px;
   height: 100vh;
   background-color: #f8f9fa; /* light mode */
   border-right: 1px solid #ddd;
@@ -18,15 +17,21 @@
 }
 
 #cpu-grid {
+  margin-top: -5px;
+  width: 100%;
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  justify-content: center;
+  justify-content: flex-start; /* Align left */
 }
 
 .cpu-col {
-  width: calc(20% - 0.5rem); /* 5 columns still */
+  width: calc(20% - 0.5rem);
   min-width: 150px;
+}
+
+.col-md-10 {
+  padding-left: 0 !important;
 }
 
 .cpu-card {
@@ -184,9 +189,17 @@ body.dark .form-label {
   margin: 0.5rem 0;
 }
 
+.cpu-specs span {
+    color: #000000;
+}
+
 body.dark .cpu-specs {
   background-color: #2d3748;
   color: #cbd5e0;
+}
+
+body.dark .cpu-specs span {
+    color: #ffffff;
 }
 
 /* Filter Results Info */
@@ -212,4 +225,32 @@ body.dark .filter-info {
 
 body.dark .loading {
   color: #9ca3af;
+}
+
+#filter-column {
+  position: sticky;
+  top: 80px;      /* so it stays visible when scrolling */
+  height: fit-content;
+    max-width: 250px;
+}
+
+.filter-card .row > div {
+  width: 100% !important;
+  margin-bottom: 1rem;
+}
+
+/* If you want filters to scroll independently */
+.sticky-filters {
+  position: sticky;
+  top: 90px; /* adjust depending on navbar height */
+}
+
+.filter-card .row {
+  display: block;
+}
+
+body.dark .filter-card {
+  background: #1e1e1e;
+  border-color: #333;
+  color: #fff;
 }

@@ -17,9 +17,9 @@
         <div class="container-fluid">
           <h2 class="text-center mb-4">Select Your CPU Cooler</h2>
           <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-2" id="filter-column">
               <!-- Sidebar Filters Section -->
-              <div class="card mb-4">
+              <div class="card mb-4 filter-card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                   <h5 class="mb-0">Filters</h5>
                   <button class="btn btn-sm btn-outline-secondary" id="clearFiltersBtn">Clear All</button>
@@ -72,20 +72,16 @@
                   <button class="btn btn-primary w-100" id="applyFiltersBtn">Apply Filters</button>
                 </div>
               </div>
-
-              <!-- Search Bar -->
-              <div class="card mb-4">
-                <div class="card-body">
+            </div>
+            <div class="col-md-10">
+              <div class="row mb-2">
+                <div class="col-10">
                   <div class="input-group">
                     <span class="input-group-text">🔍</span>
                     <input type="text" class="form-control" id="searchInput" placeholder="Search CPU Coolers...">
                   </div>
                 </div>
               </div>
-            </div>
-
-            <!-- Main Content Area -->
-            <div class="col-md-9">
               <div id="cpuCooler-grid" class="row"></div>
               <div id="pagination-container" class="mt-4 text-center"></div>
             </div>
@@ -185,11 +181,13 @@
 
       currentItems.forEach(cooler => {
         const col = document.createElement("div");
-        col.className = "col-md-6 col-lg-4 mb-4";
+        col.className = "cpuCooler-col";
 
-        const imageUrl = cooler.image_url?.startsWith("http")
-          ? cooler.image_url
-          : `/images/${cooler.image_url?.replace(/^images[\/\\]/, "")}`;
+        const imageUrl = cooler.image_url && cooler.image_url.trim() !== ""
+          ? (cooler.image_url.startsWith("http")
+              ? cooler.image_url
+              : `/images/${cooler.image_url.replace(/^images[\\/]/, "")}`)
+          : "https://via.placeholder.com/250x200?text=No+Image";
 
         // Determine cooling type
         const coolingType = cooler.liquid_cooling === 1 ? "Liquid Cooler" : "Air Cooler";
@@ -227,7 +225,7 @@
 
         col.innerHTML = `
           <div class="cpuCooler-card text-center shadow-sm p-3 mb-4 rounded h-100">
-            <img src="${imageUrl}" alt="${cooler.name}" width="250" class="mb-2" onerror="this.src='https://via.placeholder.com/250x200?text=No+Image'">
+            <img src="${imageUrl}" alt="${cooler.name}" width="250" class="mb-2" onerror="this.src='https://via.placeholder.com/250x200?text=No+Image'; this.onerror=null;">
             <h6 class="fw-semibold">${cooler.name}</h6>
             <div class="cpuCooler-specs text-muted small">
               ${specsHtml}

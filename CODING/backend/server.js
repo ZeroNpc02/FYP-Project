@@ -46,9 +46,63 @@ app.get('/api/builds', (req, res) => {
   });
 });
 
+// ✅ Get only builds for logged-in user
+app.get('/api/my-builds', authenticateToken, (req, res) => {
+  const userId = req.user.id;
+
+  const sql = `
+    SELECT 
+      b.builds_id,
+      b.builds_name,
+      b.created_at,
+      c.id AS cpu_id, c.name AS cpu_name, c.price AS cpu_price, c.image_url AS cpu_image,
+      g.id AS gpu_id, g.name AS gpu_name, g.price AS gpu_price, g.image_url AS gpu_image,
+      m.id AS motherboard_id, m.name AS motherboard_name, m.price AS motherboard_price, m.image_url AS motherboard_image,
+      r.id AS ram_id, r.name AS ram_name, r.price AS ram_price, r.image_url AS ram_image,
+      cc.id AS cpucooler_id, cc.name AS cpucooler_name, cc.price AS cpucooler_price, cc.image_url AS cpucooler_image,
+      s.id AS storage_id, s.name AS storage_name, s.price AS storage_price, s.image_url AS storage_image,
+      cs.id AS case_id, cs.name AS case_name, cs.price AS case_price, cs.image_url AS case_image,
+      p.id AS psu_id, p.name AS psu_name, p.price AS psu_price, p.image_url AS psu_image
+    FROM builds b
+    LEFT JOIN cpus c ON b.cpus_id = c.id
+    LEFT JOIN gpus g ON b.gpus_id = g.id
+    LEFT JOIN motherboards m ON b.motherboards_id = m.id
+    LEFT JOIN rams r ON b.rams_id = r.id
+    LEFT JOIN cpucoolers cc ON b.cpucoolers_id = cc.id
+    LEFT JOIN storages s ON b.storages_id = s.id
+    LEFT JOIN cases cs ON b.cases_id = cs.id
+    LEFT JOIN psus p ON b.psus_id = p.id
+    WHERE b.Users_id = ?
+    ORDER BY b.builds_id DESC
+  `;
+
+  db.query(sql, [userId], (err, results) => {
+    if (err) {
+      console.error('❌ MySQL Error:', err);
+      return res.status(500).json({ message: 'Database error' });
+    }
+
+    const builds = results.map(row => ({
+      builds_id: row.builds_id,
+      build_name: row.builds_name,
+      cpu: row.cpu_id ? { id: row.cpu_id, name: row.cpu_name, price: row.cpu_price, image_url: row.cpu_image } : null,
+      gpu: row.gpu_id ? { id: row.gpu_id, name: row.gpu_name, price: row.gpu_price, image_url: row.gpu_image } : null,
+      motherboard: row.motherboard_id ? { id: row.motherboard_id, name: row.motherboard_name, price: row.motherboard_price, image_url: row.motherboard_image } : null,
+      ram: row.ram_id ? { id: row.ram_id, name: row.ram_name, price: row.ram_price, image_url: row.ram_image } : null,
+      cpucooler: row.cpucooler_id ? { id: row.cpucooler_id, name: row.cpucooler_name, price: row.cpucooler_price, image_url: row.cpucooler_image } : null,
+      storage: row.storage_id ? { id: row.storage_id, name: row.storage_name, price: row.storage_price, image_url: row.storage_image } : null,
+      case: row.case_id ? { id: row.case_id, name: row.case_name, price: row.case_price, image_url: row.case_image } : null,
+      psu: row.psu_id ? { id: row.psu_id, name: row.psu_name, price: row.psu_price, image_url: row.psu_image } : null
+    }));
+
+    res.json(builds);
+  });
+});
+
+
 // get gpu data
 app.get('/api/gpus', (req, res) => {
-  const query = 'SELECT id, name, brand, price, image_url ,wattage FROM gpus';
+  const query = 'SELECT id, name, brand, price, image_url, product_url, dimension, color, core_clock, memory_size, memory_type, power_connectors, wattage, card_bus, gpu_category, gpu_subcategory FROM gpus';
   db.query(query, (err, results) => {
     if (err) {
       console.error(' Error fetching GPUs:', err);
@@ -167,37 +221,38 @@ app.get('/api/storages', (req, res) => {
 });
 
 
-// get build name data for completed builds
-app.get('/api/build/:buildName', (req, res) => {
-  const buildName = req.params.buildName;
+app.get('/api/build/:buildId', (req, res) => {
+  const buildId = req.params.buildId;
 
   const sql = `
     SELECT 
       b.builds_id,
       b.builds_name,
-      u.username,
-      c.cpu_name,
-      g.gpu_name,
-      m.motherboard_name,
-      r.ram_name,
-      cc.cooler_name,
-      s.storage_name,
-      cs.case_name,
-      p.psu_name
+      b.builds_description,
+      u.Username AS user_name,
+      c.id AS cpu_id, c.name AS cpu_name, c.price AS cpu_price,
+      g.id AS gpu_id, g.name AS gpu_name, g.price AS gpu_price,
+      m.id AS motherboard_id, m.name AS motherboard_name, m.price AS motherboard_price,
+      r.id AS ram_id, r.name AS ram_name, r.price AS ram_price,
+      cc.id AS cooler_id, cc.name AS cooler_name, cc.price AS cooler_price,
+      s.id AS storage_id, s.name AS storage_name, s.price AS storage_price,
+      cs.id AS case_id, cs.name AS case_name, cs.price AS case_price,
+      p.id AS psu_id, p.name AS psu_name, p.price AS psu_price,
+      b.total_price
     FROM builds b
-    LEFT JOIN users u ON b.Users_id = u.Users_id
-    LEFT JOIN cpus c ON b.cpus_id = c.cpus_id
-    LEFT JOIN gpus g ON b.gpus_id = g.gpus_id
-    LEFT JOIN motherboards m ON b.motherboards_id = m.motherboards_id
-    LEFT JOIN rams r ON b.rams_id = r.rams_id
-    LEFT JOIN cpucoolers cc ON b.cpucoolers_id = cc.cpucoolers_id
-    LEFT JOIN storages s ON b.storages_id = s.storages_id
-    LEFT JOIN cases cs ON b.cases_id = cs.cases_id
-    LEFT JOIN psus p ON b.psus_id = p.psus_id
-    WHERE b.builds_name = ?
+    LEFT JOIN users u ON b.Users_id = u.id
+    LEFT JOIN cpus c ON b.cpus_id = c.id
+    LEFT JOIN gpus g ON b.gpus_id = g.id
+    LEFT JOIN motherboards m ON b.motherboards_id = m.id
+    LEFT JOIN rams r ON b.rams_id = r.id
+    LEFT JOIN cpucoolers cc ON b.cpucoolers_id = cc.id
+    LEFT JOIN storages s ON b.storages_id = s.id
+    LEFT JOIN cases cs ON b.cases_id = cs.id
+    LEFT JOIN psus p ON b.psus_id = p.id
+    WHERE b.builds_id = ?
   `;
 
-  db.query(sql, [buildName], (err, results) => {
+  db.query(sql, [buildId], (err, results) => {
     if (err) {
       console.error('Error fetching build:', err);
       return res.status(500).json({ error: 'Database error' });
@@ -205,7 +260,7 @@ app.get('/api/build/:buildName', (req, res) => {
     if (!results.length) {
       return res.status(404).json({ message: 'Build not found' });
     }
-    res.json(results[0]); // return one build
+    res.json(results[0]);
   });
 });
 

@@ -433,47 +433,118 @@
 
       updateTotals();
       
-      saveBuildBtn.addEventListener('click', () => {
+      saveBuildBtn.addEventListener('click', async () => {
         const buildName = document.getElementById('buildName').value.trim();
-        const modalBody = document.getElementById('saveStatusModalBody'); // <-- correct element
+        const modalBody = document.getElementById('saveStatusModalBody');
+        const token = localStorage.getItem('token');
 
         if (!buildName) {
           modalBody.textContent = "⚠️ Please enter a build name.";
           modalBody.className = "text-danger";
-        } else {
-          const storageKey = getUserStorageKey();
-
-          const buildData = {};
-          Object.entries(keyMap).forEach(([label, key]) => {
-            const item = JSON.parse(localStorage.getItem(key));
-            if (item) buildData[key] = item;
-          });
-
-          const builds = JSON.parse(localStorage.getItem(storageKey)) || [];
-          builds.push({ name: buildName, components: buildData, timestamp: Date.now() });
-          localStorage.setItem(storageKey, JSON.stringify(builds));
-
-          modalBody.textContent = "✅ Build saved locally!";
-          modalBody.className = "text-success";
-
-          displayUserBuildsModal(); // refresh build list
-          document.getElementById('buildName').value = ''; // optional: clear input
+          new bootstrap.Modal(document.getElementById('saveStatusModal')).show();
+          return;
         }
 
-        const saveModal = new bootstrap.Modal(document.getElementById('saveStatusModal'));
-        saveModal.show();
-      });
+        // Collect components from localStorage
+        const getId = (key) => {
+          const item = JSON.parse(localStorage.getItem(key));
+          return item?.id || item?.cpu_id || item?.gpu_id || item?.motherboards_id || item?.rams_id || item?.cpucoolers_id || item?.storages_id || item?.cases_id || item?.psus_id || null;
+        };
 
+        const data = {
+          build_name: buildName,
+          cpus_id: getId('selectedCPU'),
+          gpus_id: getId('selectedGPU'),
+          motherboards_id: getId('selectedMotherboard'),
+          rams_id: getId('selectedRAM'),
+          cpucoolers_id: getId('selectedCpuCooler'),
+          storages_id: getId('selectedStorage'),
+          cases_id: getId('selectedCase'),
+          psus_id: getId('selectedPSU')
+        };
+
+        try {
+          if (token) {
+            // ✅ Logged in → Save to database
+            const res = await fetch("http://localhost:3001/api/save-build", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+              },
+              body: JSON.stringify(data)
+            });
+
+            const result = await res.json();
+
+            if (!res.ok) throw new Error(result.message || "Failed to save build");
+
+            modalBody.textContent = "✅ Build saved to your account!";
+            modalBody.className = "text-success";
+          } else {
+            // 👤 Guest → Save locally
+            const storageKey = getUserStorageKey();
+            const builds = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+            builds.push({
+              name: buildName,
+              components: data,
+              timestamp: Date.now()
+            });
+
+            localStorage.setItem(storageKey, JSON.stringify(builds));
+
+            modalBody.textContent = "✅ Build saved locally (guest mode).";
+            modalBody.className = "text-success";
+          }
+
+          document.getElementById('buildName').value = '';
+          displayUserBuildsModal();
+        } catch (err) {
+          console.error("Save build error:", err);
+          modalBody.textContent = `❌ Error saving build: ${err.message}`;
+        }
+
+        new bootstrap.Modal(document.getElementById('saveStatusModal')).show();
+      });
 
       const myBuildsBtn = document.getElementById('myBuildsBtn');
 
-      function displayUserBuildsModal() {
-        const storageKey = getUserStorageKey();
-        const builds = JSON.parse(localStorage.getItem(storageKey)) || [];
+      async function displayUserBuildsModal() {
         const modalBody = document.getElementById('myBuildsModalBody');
         modalBody.innerHTML = '';
 
-        if (builds.length === 0) {
+        const token = localStorage.getItem('token');
+
+        let builds = [];
+
+        if (token) {
+          // 🔐 Logged in → Fetch from DB
+          try {
+            const res = await fetch("http://localhost:3001/api/my-builds", {
+              headers: {
+                "Authorization": `Bearer ${token}`
+              }
+            });
+
+            const data = await res.json();
+            console.log("DB builds:", data);
+
+            if (!res.ok) throw new Error(data.message || "Failed to fetch builds");
+
+            builds = data;
+          } catch (err) {
+            console.error("Load DB builds failed:", err);
+            modalBody.innerHTML = '<p class="text-danger">Failed to load your saved builds.</p>';
+            return;
+          }
+        } else {
+          // 👤 Guest → Load from localStorage
+          const storageKey = getUserStorageKey();
+          builds = JSON.parse(localStorage.getItem(storageKey)) || [];
+        }
+
+        if (!builds.length) {
           modalBody.innerHTML = '<p class="text-muted">No builds saved yet.</p>';
           return;
         }
@@ -481,13 +552,20 @@
         builds.forEach((build, index) => {
           const div = document.createElement('div');
           div.className = 'd-flex justify-content-between align-items-center mb-2';
+
           div.innerHTML = `
-            <span style="cursor:pointer;" onclick="loadBuild(${index}); bootstrap.Modal.getInstance(document.getElementById('myBuildsModal')).hide();">${build.name}</span>
-            <button class="btn btn-sm btn-danger" onclick="deleteBuild(${index})">Delete</button>
+            <span style="cursor:pointer;"
+              onclick="loadBuild(${index})">
+              ${build.build_name || build.name}
+            </span>
+            <button class="btn btn-sm btn-danger" onclick="deleteBuild(${index})">
+              Delete
+            </button>
           `;
           modalBody.appendChild(div);
         });
       }
+
 
       // Open the modal when clicking the button
       myBuildsBtn.addEventListener('click', () => {
@@ -535,34 +613,53 @@
       }
 
       window.loadBuild = function(index) {
-        const storageKey = getUserStorageKey();
-        const builds = JSON.parse(localStorage.getItem(storageKey)) || [];
-        const build = builds[index];
-        if (!build) return;
+        const token = localStorage.getItem('token');
 
-        // Load components into localStorage
-        Object.entries(build.components).forEach(([key, value]) => {
-          localStorage.setItem(key, JSON.stringify(value));
-        });
+        if (token) {
+          // Logged in → Load from DB list
+          fetch("http://localhost:3001/api/my-builds", {
+            headers: {
+              "Authorization": `Bearer ${token}`
+            }
+          })
+          .then(res => res.json())
+          .then(builds => {
+            const build = builds[index];
+            if (!build) return;
 
-        // Refresh UI
-        Object.entries(keyMap).forEach(([label, key]) => {
-          const item = JSON.parse(localStorage.getItem(key));
-          const div = document.getElementById(divMap[label]);
-          if (item && div) {
-            div.innerHTML = `
-              <div class="d-flex align-items-center mt-2">
-                <img src="${item.image_url}" alt="${item.name}" style="width:60px;height:auto;" class="me-3 rounded">
-                <div><div class="fw-bold">${item.name}</div><div class="small">Price: RM${parseFloat(item.price).toFixed(2)}</div></div>
-                <button class="btn btn-sm btn-outline-danger ms-2" onclick="clearComponent('${label}')">&times;</button>
-              </div>
-            `;
-          } else if (div) div.innerHTML = '';
-        });
+            const componentMap = {
+              selectedCPU: build.cpu,
+              selectedGPU: build.gpu,
+              selectedMotherboard: build.motherboard,
+              selectedRAM: build.ram,
+              selectedCpuCooler: build.cpucooler,
+              selectedStorage: build.storage,
+              selectedCase: build.case,
+              selectedPSU: build.psu
+            };
 
-        updateTotals();
-        updateCompatibilityButton();
+            Object.entries(componentMap).forEach(([key, value]) => {
+              if (value) localStorage.setItem(key, JSON.stringify(value));
+            });
+
+            location.reload(); // easiest way to refresh UI
+          });
+
+        } else {
+          // Guest → load from localStorage
+          const storageKey = getUserStorageKey();
+          const builds = JSON.parse(localStorage.getItem(storageKey)) || [];
+          const build = builds[index];
+          if (!build) return;
+
+          Object.entries(build.components).forEach(([key, value]) => {
+            localStorage.setItem(key, JSON.stringify(value));
+          });
+
+          location.reload();
+        }
       };
+
 
       window.deleteBuild = function(index) {
         const storageKey = getUserStorageKey();
