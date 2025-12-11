@@ -558,6 +558,37 @@ app.post('/api/save-build', authenticateToken, (req, res) => {
   );
 });
 
+app.post("/api/submit-build", async (req, res) => {
+  const { buildId, title, description, is_public } = req.body;
+
+  // 1. Get the saved build
+  const [saved] = await db.query(
+    "SELECT id, user_id FROM saved_builds WHERE id = ?",
+    [buildId]
+  );
+
+  if (!saved) {
+    return res.status(400).json({ message: "Saved build not found" });
+  }
+
+  // 2. Insert into completed builds table
+  await db.query(
+    `INSERT INTO completed_builds 
+    (user_id, builds_id, title, description, is_public, created_at)
+    VALUES (?, ?, ?, ?, ?, NOW())`,
+    [
+      saved.user_id,
+      saved.id,
+      title,
+      description,
+      is_public ?? 1
+    ]
+  );
+
+  res.json({ message: "Completed build submitted successfully!" });
+});
+
+
 app.get('/api/profile', verifyToken, (req, res) => {
   res.json({ message: `Welcome, ${req.user.email}!`, userId: req.user.id });
 });

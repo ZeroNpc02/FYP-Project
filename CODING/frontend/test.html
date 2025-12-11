@@ -1,500 +1,791 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Build</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Completed Builds</title>
+
   <link rel="stylesheet" href="public/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="public/css/build.css" />
+  <link rel="stylesheet" href="public/css/completedbuilds.css" />
   <link rel="stylesheet" href="public/css/dropdown.css" />
+  <link rel="stylesheet" href="public/css/sidebar.css" />
+  <script src="public/js/security.js" defer></script>
 </head>
-<body class="dark">
-  <div class="wrapper d-flex">
-    <aside id="sidebar-container" class="sidebar"></aside>
-    <main class="main-content flex-grow-1 p-4">
-      <div class="text-center mb-4">
-        <h1 class="display-6 fw-bold">Build Your PC</h1>
-        <p class="lead">Choose your components and build your dream PC.</p>
-      </div>
-      
-      <div class="build-wrapper border rounded p-3 mb-4">
-        <div class="build-info-wrapper d-flex align-items-center gap-3 flex-grow-1">
-          <div class="build-name-display d-flex align-items-center gap-2">
-            <span id="buildNameDisplay" class="fw-semibold build-name-text">New Build</span>
-            <button id="editBuildNameBtn" class="btn btn-sm btn-outline-secondary p-1 d-flex align-items-center"
-                    style="border-radius: 6px;">
-              ✏️
-            </button>
-          </div>
-          <div class="user-info fw-semibold">
-            <span id="username">Guest</span>
-          </div>
-          <div class="date-info small text-muted">
-            <span id="currentDate"></span>
-          </div>
-        </div>
 
-        <div class="summary-wrapper border rounded p-3 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-2">
-          <div class="summary-item text-center flex-grow-1">
-            <div id="total-price" class="fw-bold small">Total Price: RM0.00</div>
-          </div>
-          <div class="summary-item text-center flex-grow-1">
-            <div id="total-wattage" class="fw-bold small">Estimated Wattage: 0W</div>
-          </div>
-          <div class="summary-item text-center flex-grow-1">
-            <button id="checkCompatibilityBtn" class="btn btn-primary btn-sm fw-semibold">⚙️ Check Compatibility</button>
-          </div>
-        </div>
+<body>
+  <div class="app-grid">
+    <div id="sidebar-container"></div>
+    <div id="dropdown-container"></div>
 
-        <div id="compatibilityResult" class="text-muted small mb-3"></div>
+    <main class="content">
+      <div class="container-fluid py-4">
+        <div class="row">
+          <!-- Sidebar Filters -->
+          <aside class="col-md-3 col-lg-2 mb-4">
+            <div class="card bg-dark text-white p-3 shadow-sm sticky-top" style="top: 80px;">
+              <h5 class="mb-3">Filters</h5>
 
-        <div class="card shadow-sm mb-4">
-          <div class="card-body">
-            <h5 class="card-title mb-4">Parts List</h5>
-
-            <div class="part-row d-flex justify-content-between align-items-start">
-              <div class="part-info">
-                <span>CPU</span>
-                <div id="selected-cpu" class="selected-part"></div>
+              <div class="mb-3">
+                <label class="form-label">Price</label>
+                <input type="range" class="form-range" min="0" max="25000" id="priceRange">
+                <div class="d-flex justify-content-between">
+                  <small>RM0</small><small>RM25,000</small>
+                </div>
               </div>
-              <button class="btn btn-outline-primary btn-sm add-button">Add CPU</button>
+
+              <div class="mb-3">
+                <label class="form-label">Published</label>
+                <select class="form-select form-select-sm bg-secondary text-white" id="publishedFilter">
+                  <option value="all">All</option>
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">CPU Cooler Type</label>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="coolerAll" checked> <label class="form-check-label">All</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="coolerAir"> <label class="form-check-label">Air Cooler</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="coolerLiquid"> <label class="form-check-label">Liquid Cooler</label>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Builds Grid -->
+          <section class="col-md-9 col-lg-10">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h2 class="mb-0">Completed Builds</h2>
+
+              <div class="d-flex gap-2">
+                <select id="sortSelect" class="form-select form-select-sm bg-secondary text-white" style="width: 160px;">
+                  <option value="date">Date Posted (Newest)</option>
+                  <option value="price_asc">Price (Lowest)</option>
+                  <option value="price_desc">Price (Highest)</option>
+                </select>
+                <input type="text" id="searchBuilds" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Search Builds">
+              </div>
             </div>
 
-            <div class="part-row d-flex justify-content-between align-items-start">
-              <div class="part-info"><span>CPU Cooler</span><div id="selected-cpuCooler" class="selected-part"></div></div>
-              <button class="btn btn-outline-primary btn-sm add-button">Add CPU Cooler</button>
+            <div class="d-flex flex-column flex-md-row gap-2 mb-3">
+              <button id="addBuildBtn" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Add New Build
+              </button>
+              <div class="d-flex gap-2">
+                <button id="sortByDate" class="btn btn-outline-secondary btn-sm">Latest</button>
+                <button id="sortByRating" class="btn btn-outline-secondary btn-sm">Top Rated</button>
+                <button id="sortByComments" class="btn btn-outline-secondary btn-sm">Most Discussed</button>
+              </div>
             </div>
 
-            <div class="part-row d-flex justify-content-between align-items-start">
-              <div class="part-info"><span>Motherboard</span><div id="selected-mobo" class="selected-part"></div></div>
-              <button class="btn btn-outline-primary btn-sm add-button">Add Motherboard</button>
+            <!-- Build cards grid -->
+            <div id="build-list" class="row g-4">
+              <!-- Cards will be appended here -->
             </div>
-
-            <div class="part-row d-flex justify-content-between align-items-start">
-              <div class="part-info"><span>RAM</span><div id="selected-ram" class="selected-part"></div></div>
-              <button class="btn btn-outline-primary btn-sm add-button">Add RAM</button>
-            </div>
-
-            <div class="part-row d-flex justify-content-between align-items-start">
-              <div class="part-info"><span>GPU</span><div id="selected-gpu" class="selected-part"></div></div>
-              <button class="btn btn-outline-primary btn-sm add-button">Add GPU</button>
-            </div>
-
-            <div class="part-row d-flex justify-content-between align-items-start">
-              <div class="part-info"><span>Storage</span><div id="selected-storage" class="selected-part"></div></div>
-              <button class="btn btn-outline-primary btn-sm add-button">Add Storage</button>
-            </div>
-
-            <div class="part-row d-flex justify-content-between align-items-start">
-              <div class="part-info"><span>Case</span><div id="selected-case" class="selected-part"></div></div>
-              <button class="btn btn-outline-primary btn-sm add-button">Add Case</button>
-            </div>
-
-            <div class="part-row d-flex justify-content-between align-items-start">
-              <div class="part-info"><span>Power Supply</span><div id="selected-psu" class="selected-part"></div></div>
-              <button class="btn btn-outline-primary btn-sm add-button">Add Power Supply</button>
-            </div>
-
-            <div class="pt-4 text-muted"><h6>Additional Parts</h6></div>
-          </div>
+          </section>
         </div>
       </div>
     </main>
   </div>
 
-  <!-- Build Info Modal -->
-  <div id="buildInfoModal" class="modal fade" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+  <!-- Rating Modal (unchanged) -->
+  <div class="modal fade" id="ratingModal" tabindex="-1">
+    <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Edit Build Information</h5>
+          <h5 class="modal-title">Rate This Build</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>How would you rate this build?</p>
+          <div class="rating-input mb-3">
+            <div id="starRating" class="d-flex gap-2" style="font-size: 2rem;">
+              <span class="star" data-rating="1">⭐</span>
+              <span class="star" data-rating="2">⭐</span>
+              <span class="star" data-rating="3">⭐</span>
+              <span class="star" data-rating="4">⭐</span>
+              <span class="star" data-rating="5">⭐</span>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="ratingComment" class="form-label">Optional Comment</label>
+            <textarea class="form-control" id="ratingComment" rows="3" placeholder="Share your thoughts about this build..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="submitRatingBtn">Submit Rating</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comments Modal (unchanged) -->
+  <div class="modal fade" id="commentsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Build Comments</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Add Comment Form -->
+          <div class="add-comment mb-4">
+            <h6>Add a Comment</h6>
+            <textarea class="form-control mb-2" id="newComment" rows="2" placeholder="Share your thoughts..."></textarea>
+            <button class="btn btn-primary btn-sm" id="submitCommentBtn">Post Comment</button>
+          </div>
+
+          <!-- Comments List -->
+          <div id="commentsList">
+            <!-- Comments will be loaded here -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Build Modal (Option A) -->
+  <div class="modal fade" id="addBuildModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Share Your Build (From Saved Builds)</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
 
         <div class="modal-body">
-          <label class="form-label fw-semibold">Build Name</label>
-          <input type="text" id="editBuildName" class="form-control mb-3" />
+          <div id="add-build-error" class="alert alert-danger d-none"></div>
 
-          <label class="form-label fw-semibold">Build Description</label>
-          <textarea id="editBuildDescription" class="form-control" rows="3"></textarea>
+          <div class="mb-3">
+            <label for="savedBuildSelect" class="form-label">Select a saved build *</label>
+            <select id="savedBuildSelect" class="form-select">
+              <option value="">-- Loading saved builds --</option>
+            </select>
+            <div class="form-text">These are builds you saved earlier in your PC builder — select one to publish here.</div>
+          </div>
+
+          <div id="savedBuildPreview" class="mb-3 d-none">
+            <div class="d-flex gap-3 align-items-center">
+              <img id="previewImage" src="public/images/default-build.jpg" alt="preview" style="width:96px;height:64px;object-fit:cover;border-radius:4px;">
+              <div>
+                <div id="previewName" class="fw-bold"></div>
+                <div id="previewSpecs" class="small text-muted"></div>
+                <div id="previewPrice" class="fw-bold text-success"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="newBuildName" class="form-label">Build Name *</label>
+            <input type="text" class="form-control" id="newBuildName" placeholder="Title that will be visible to others" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="newBuildDescription" class="form-label">Description</label>
+            <textarea class="form-control" id="newBuildDescription" rows="4" placeholder="Tell us about your build, what makes it special, or any tips..."></textarea>
+          </div>
+
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="makePublic" checked>
+            <label class="form-check-label" for="makePublic">
+              Make this build public (visible to everyone)
+            </label>
+          </div>
         </div>
 
         <div class="modal-footer">
-          <button id="saveBuildInfoBtn" class="btn btn-success">Save Changes</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="submitNewBuildBtn">Share Build</button>
         </div>
       </div>
     </div>
   </div>
 
+  <script src="public/js/bootstrap.bundle.min.js"></script>
+  <script src="public/js/common.js"></script>
 
-  <!-- Modal -->
-  <div id="Modal" class="modal d-none" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modal-title">Select a Component</h5>
-          <button type="button" class="btn-close close-button"></button>
-        </div>
-        <div class="modal-body">
-          <input type="text" id="component-search" class="form-control mb-3" placeholder="Search for a component..." />
-          <ul id="List" class="list-group"></ul>
-        </div>
-      </div>
-    </div>
-  </div>
-
-    <!-- Compatibility Modal -->
-  <div id="compatibilityModal" class="modal fade" tabindex="-1" aria-labelledby="compatibilityModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="compatibilityModalLabel">Compatibility Check</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body" id="compatibilityModalBody">
-          <!-- Compatibility issues will be injected here -->
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <div id="dropdown-container"></div>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const modal = document.getElementById('Modal');
-      const modalTitle = document.getElementById('modal-title');
-      const listElement = document.getElementById('List');
-      const searchInput = document.getElementById('component-search');
-      const closeButton = document.querySelector('.close-button');
-      const addButtons = document.querySelectorAll('.add-button');
-      const totalPriceEl = document.getElementById('total-price');
-      const totalWattageEl = document.getElementById('total-wattage');
-      const checkCompatibilityBtn = document.getElementById("checkCompatibilityBtn");
-      const compatibilityResult = document.getElementById("compatibilityResult"); 
+    /*******************************
+     * Helper utilities & globals
+     *******************************/
+    let currentBuildId = null; // for comments/ratings
+    let userRating = 0;
 
-      const usernameEl = document.getElementById('username');
-      const user = JSON.parse(localStorage.getItem('user'));
-      if (user && user.username) {
-        usernameEl.textContent = user.username;
+    // Helper: format date
+    function formatDate(dateString) {
+      if (!dateString) return 'Unknown';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    }
+
+    // Helper: generate stars HTML (string)
+    function generateStars(rating) {
+      let stars = '';
+      for (let i = 1; i <= 5; i++) {
+        if (i <= Math.floor(rating)) {
+          stars += '<span class="text-warning">⭐</span>';
+        } else if (i - 0.5 <= rating) {
+          stars += '<span class="text-warning">⭐</span>';
+        } else {
+          stars += '<span class="text-muted">⭐</span>';
+        }
+      }
+      return stars;
+    }
+
+    // Helper: create a build card node
+    function renderBuildCard(b) {
+      const col = document.createElement('div');
+      col.className = 'col-sm-6 col-md-4 col-lg-3';
+
+      const card = document.createElement('div');
+      card.className = 'card build-card shadow-sm h-100';
+      card.dataset.buildId = b.builds_id || b.build_id || b.id || '';
+
+      // image area
+      const ratio = document.createElement('div');
+      ratio.className = 'ratio ratio-16x9';
+      const img = document.createElement('img');
+      img.src = b.image_url || b.image || (b.cpu && b.cpu.image_url) || 'public/images/default-build.jpg';
+      img.className = 'card-img-top rounded-top';
+      img.alt = b.builds_name || b.build_name || b.name || 'Build';
+      ratio.appendChild(img);
+
+      // body
+      const body = document.createElement('div');
+      body.className = 'card-body';
+
+      // header
+      const header = document.createElement('div');
+      header.className = 'd-flex align-items-center mb-2';
+      const avatar = document.createElement('div');
+      avatar.className = 'user-avatar me-2';
+      avatar.style = "width:32px;height:32px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold";
+      avatar.textContent = (b.user_name || b.user || 'U').charAt(0).toUpperCase();
+
+      const headerMeta = document.createElement('div');
+      headerMeta.innerHTML = `<div class="text-primary small fw-bold">${b.user_name || b.user || 'Anonymous'}</div><div class="text-muted small">${formatDate(b.created_at || b.createdAt || b.created)}</div>`;
+
+      header.appendChild(avatar);
+      header.appendChild(headerMeta);
+
+      // title
+      const h5 = document.createElement('h5');
+      h5.className = 'card-title text-truncate';
+      h5.title = b.builds_name || b.build_name || b.name || '';
+      h5.textContent = b.builds_name || b.build_name || b.name || '';
+
+      // description
+      const descText = b.builds_description || b.description || '';
+      const pDesc = descText ? document.createElement('p') : null;
+      if (pDesc) {
+        pDesc.className = 'card-text text-muted small';
+        pDesc.textContent = descText.length > 80 ? descText.substring(0, 80) + '...' : descText;
       }
 
-      const dateEl = document.getElementById('currentDate');
-      const today = new Date();
-      dateEl.textContent = today.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
+      // specs
+      const specs = document.createElement('div');
+      specs.className = 'build-specs mb-2';
+      const cpuName = (b.cpu && (b.cpu.name || b.cpu_name)) || b.cpu_name || 'N/A';
+      const gpuName = (b.gpu && (b.gpu.name || b.gpu_name)) || b.gpu_name || 'N/A';
+      specs.innerHTML = `<div class="text-muted small mb-1">🖥️ ${cpuName} + ${gpuName}</div>`;
 
-      const editBuildNameBtn = document.getElementById('editBuildNameBtn');
-      const buildNameDisplay = document.getElementById('buildNameDisplay');
-      const editBuildName = document.getElementById('editBuildName');
-      const editBuildDescription = document.getElementById('editBuildDescription');
-      const saveBuildInfoBtn = document.getElementById('saveBuildInfoBtn');
+      // price
+      const price = document.createElement('div');
+      price.className = 'fw-bold mb-2 text-success';
+      const total = parseFloat(b.total_price || b.price || b.total || 0).toFixed(2);
+      price.textContent = `RM${total}`;
 
-      let currentBuildId = localStorage.getItem('currentBuildId') || null; 
-      // You must store this ID when the build is created
+      // rating area (use average_rating if available)
+      const ratingArea = document.createElement('div');
+      ratingArea.className = 'mb-2';
+      const rating = parseFloat(b.average_rating || 0);
+      const ratingCount = b.rating_count || b.ratings || 0;
+      ratingArea.innerHTML = `<div class="d-flex align-items-center"><div class="rating-stars me-2">${generateStars(rating)}</div><span class="text-muted small">${rating.toFixed(1)} (${ratingCount} ${ratingCount === 1 ? 'rating' : 'ratings'})</span></div>`;
 
-      // Open Modal + Load Existing Values
-      editBuildNameBtn.addEventListener('click', () => {
-        editBuildName.value = buildNameDisplay.textContent.trim();
-        editBuildDescription.value = localStorage.getItem('buildDescription') || "";
+      // action buttons
+      const actions = document.createElement('div');
+      actions.className = 'd-flex justify-content-between align-items-center';
+      actions.innerHTML = `
+        <div class="d-flex gap-1">
+          <button class="btn btn-sm btn-outline-primary rate-btn" title="Rate this build"><i class="bi bi-star"></i> Rate</button>
+          <button class="btn btn-sm btn-outline-secondary comment-btn" title="View comments"><i class="bi bi-chat"></i> ${b.comment_count || 0}</button>
+        </div>
+        <button class="btn btn-sm btn-outline-info view-btn" title="View full build"><i class="bi bi-eye"></i></button>
+      `;
 
-        const modal = new bootstrap.Modal(document.getElementById('buildInfoModal'));
-        modal.show();
-      });
+      // attach handlers (delegated)
+      actions.querySelector('.rate-btn').addEventListener('click', () => showRatingModal(b.builds_id || b.build_id || b.id));
+      actions.querySelector('.comment-btn').addEventListener('click', () => showCommentsModal(b.builds_id || b.build_id || b.id));
+      actions.querySelector('.view-btn').addEventListener('click', () => viewBuildDetails(b.builds_id || b.build_id || b.id));
 
-      saveBuildInfoBtn.addEventListener('click', async () => {
-        const newName = editBuildName.value.trim();
-        const newDesc = editBuildDescription.value.trim();
+      // build card
+      body.appendChild(header);
+      body.appendChild(h5);
+      if (pDesc) body.appendChild(pDesc);
+      body.appendChild(specs);
+      body.appendChild(price);
+      body.appendChild(ratingArea);
+      body.appendChild(actions);
 
-        if (newName === "") {
-          alert("Build name cannot be empty.");
+      card.appendChild(ratio);
+      card.appendChild(body);
+      col.appendChild(card);
+
+      return col;
+    }
+
+    /*******************************
+     * Load existing completed builds (these are the ones published via /api/save-build)
+     *******************************/
+    async function loadBuilds() {
+      try {
+        const container = document.getElementById("build-list");
+        container.innerHTML = ''; // clear
+        // fetch existing published completed builds
+        const response = await fetch(`/api/builds`); // public endpoint - returns all completed builds
+        if (!response.ok) throw new Error('Failed to fetch builds');
+        const builds = await response.json();
+
+        if (!builds || builds.length === 0) {
+          container.innerHTML = '<p class="text-center text-muted">No builds available.</p>';
           return;
         }
 
-        // Update UI immediately
-        buildNameDisplay.textContent = newName;
+        const frag = document.createDocumentFragment();
+        builds.forEach(b => frag.appendChild(renderBuildCard(b)));
+        container.appendChild(frag);
 
-        // Store locally
-        localStorage.setItem('buildName', newName);
-        localStorage.setItem('buildDescription', newDesc);
+      } catch (err) {
+        console.error('Error loading builds:', err);
+        document.getElementById('build-list').innerHTML = '<p class="text-danger">Failed to load builds</p>';
+      }
+    }
 
-        // Prepare JSON for backend
-        const body = {
-          build_id: currentBuildId,
-          name: newName,
-          description: newDesc
+    /*******************************
+     * Add Build flow (Option A)
+     *******************************/
+    const addBuildBtn = document.getElementById('addBuildBtn');
+    const addBuildModalEl = document.getElementById('addBuildModal');
+    const savedBuildSelect = document.getElementById('savedBuildSelect');
+    const savedBuildPreview = document.getElementById('savedBuildPreview');
+    const previewImage = document.getElementById('previewImage');
+    const previewName = document.getElementById('previewName');
+    const previewSpecs = document.getElementById('previewSpecs');
+    const previewPrice = document.getElementById('previewPrice');
+    const addBuildError = document.getElementById('add-build-error');
+
+    let mySavedBuilds = []; // cache user saved builds fetched from /api/my-builds
+
+    addBuildBtn.addEventListener('click', async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('You must be logged in to add a build');
+        return;
+      }
+
+      // reset modal UI
+      addBuildError.classList.add('d-none');
+      savedBuildSelect.innerHTML = '<option value="">-- Loading saved builds --</option>';
+      savedBuildPreview.classList.add('d-none');
+      document.getElementById('newBuildName').value = '';
+      document.getElementById('newBuildDescription').value = '';
+      document.getElementById('makePublic').checked = true;
+
+      // Show modal
+      const modal = new bootstrap.Modal(addBuildModalEl);
+      modal.show();
+
+      // Fetch user's saved builds
+      try {
+        const res = await fetch('/api/my-builds', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (res.status === 401 || res.status === 403) {
+          throw new Error('Unauthorized. Please login again.');
+        }
+
+        if (!res.ok) {
+          const err = await res.json().catch(()=>({message:'Failed to fetch'}));
+          throw new Error(err.message || 'Failed to fetch saved builds');
+        }
+
+        const data = await res.json();
+        mySavedBuilds = Array.isArray(data) ? data : [];
+
+        if (mySavedBuilds.length === 0) {
+          savedBuildSelect.innerHTML = '<option value="">-- No saved builds found --</option>';
+          return;
+        }
+
+        // populate select with saved builds
+        savedBuildSelect.innerHTML = '<option value="">-- Select a saved build --</option>';
+        mySavedBuilds.forEach(sb => {
+          const opt = document.createElement('option');
+          opt.value = sb.builds_id || sb.build_id || sb.id;
+          // store minimal preview data on option dataset for quick access
+          opt.dataset.previewName = sb.build_name || sb.builds_name || (sb.name || '');
+          opt.dataset.previewPrice = (sb.total_price || sb.price || (sb.cpu && sb.cpu.price) || 0);
+          opt.dataset.previewImage = sb.image_url || sb.image || (sb.cpu && sb.cpu.image_url) || 'public/images/default-build.jpg';
+          opt.textContent = `${opt.dataset.previewName} — RM${parseFloat(opt.dataset.previewPrice).toFixed(2)}`;
+          savedBuildSelect.appendChild(opt);
+        });
+
+      } catch (error) {
+        console.error('Error fetching saved builds:', error);
+        savedBuildSelect.innerHTML = '<option value="">-- Failed to load saved builds --</option>';
+        addBuildError.classList.remove('d-none');
+        addBuildError.textContent = error.message || 'Failed to load saved builds';
+      }
+    });
+
+    // when user chooses a saved build from dropdown, show preview
+    savedBuildSelect.addEventListener('change', function() {
+      const selectedVal = this.value;
+      if (!selectedVal) {
+        savedBuildPreview.classList.add('d-none');
+        return;
+      }
+
+      // find saved build object
+      const sb = mySavedBuilds.find(x => String(x.builds_id || x.build_id || x.id) === String(selectedVal));
+      if (!sb) {
+        savedBuildPreview.classList.add('d-none');
+        return;
+      }
+
+      // Preview fields
+      previewImage.src = sb.image_url || sb.image || (sb.cpu && sb.cpu.image_url) || 'public/images/default-build.jpg';
+      previewName.textContent = sb.build_name || sb.builds_name || sb.name || 'Saved Build';
+      const cpuName = (sb.cpu && (sb.cpu.name || sb.cpu_name)) || sb.cpu_name || 'N/A';
+      const gpuName = (sb.gpu && (sb.gpu.name || sb.gpu_name)) || sb.gpu_name || 'N/A';
+      previewSpecs.textContent = `${cpuName} + ${gpuName}`;
+      previewPrice.textContent = `RM${parseFloat(sb.total_price || sb.price || 0).toFixed(2)}`;
+      savedBuildPreview.classList.remove('d-none');
+
+      // If user didn't already set build title, suggest the saved build name
+      const newBuildNameInput = document.getElementById('newBuildName');
+      if (!newBuildNameInput.value) {
+        newBuildNameInput.value = sb.build_name || sb.builds_name || sb.name || '';
+      }
+    });
+
+    // Submit new completed build (taking component IDs from selected saved build)
+    document.getElementById('submitNewBuildBtn').addEventListener('click', async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('You must be logged in to share a build');
+        return;
+      }
+
+      const selectedId = savedBuildSelect.value;
+      if (!selectedId) {
+        alert('Please select one of your saved builds first');
+        return;
+      }
+
+      const sb = mySavedBuilds.find(x => String(x.builds_id || x.build_id || x.id) === String(selectedId));
+      if (!sb) {
+        alert('Selected saved build not found. Try again.');
+        return;
+      }
+
+      const buildName = document.getElementById('newBuildName').value.trim();
+      const buildDescription = document.getElementById('newBuildDescription').value.trim();
+      const isPublic = document.getElementById('makePublic').checked;
+
+      if (!buildName) {
+        alert('Please enter a build name');
+        return;
+      }
+
+      // Prepare body using the saved build's component IDs (backend expects cpus_id, gpus_id, etc.)
+      // The /api/my-builds returned structure in your backend maps to:
+      // sb.cpu.id, sb.gpu.id, sb.motherboard.id, sb.ram.id, sb.cpucooler.id, sb.storage.id, sb.case.id, sb.psu.id
+      const body = {
+        build_name: buildName,
+        build_description: buildDescription,
+        is_public: isPublic,
+        cpus_id: sb.cpu?.id || sb.cpu_id || sb.cpu_id || 1,
+        gpus_id: sb.gpu?.id || sb.gpu_id || sb.gpu_id || 1,
+        motherboards_id: sb.motherboard?.id || sb.motherboard_id || sb.motherboard_id || 1,
+        rams_id: sb.ram?.id || sb.ram_id || sb.ram_id || 1,
+        cpucoolers_id: sb.cpucooler?.id || sb.cpucooler_id || sb.cpucooler_id || 1,
+        storages_id: sb.storage?.id || sb.storage_id || sb.storage_id || 1,
+        cases_id: sb.case?.id || sb.case_id || sb.case_id || 1,
+        psus_id: sb.psu?.id || sb.psu_id || sb.psu_id || 1
+      };
+
+      try {
+        const res = await fetch('/api/save-build', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(body)
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ message: 'Failed to save' }));
+          throw new Error(err.message || 'Failed to save build');
+        }
+
+        const result = await res.json();
+
+        // successful -> close modal and append new card to UI.
+        alert('✅ Build added successfully!');
+        bootstrap.Modal.getInstance(addBuildModalEl).hide();
+
+        // We can append a minimal card using the saved build preview + returned build_id
+        const newBuildCardData = {
+          builds_id: result.build_id || result.builds_id || '',
+          builds_name: buildName,
+          builds_description: buildDescription,
+          image_url: sb.image_url || sb.image || (sb.cpu && sb.cpu.image_url) || 'public/images/default-build.jpg',
+          cpu_name: sb.cpu?.name || sb.cpu_name || '',
+          gpu_name: sb.gpu?.name || sb.gpu_name || '',
+          total_price: sb.total_price || sb.price || 0,
+          created_at: new Date().toISOString(),
+          user_name: (await getCurrentUserName()) || 'You',
+          comment_count: 0,
+          average_rating: 0,
+          rating_count: 0
         };
 
-        try {
-          const response = await fetch("http://localhost:3001/api/updateBuildInfo", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body)
-          });
-
-          const result = await response.json();
-
-          if (result.success) {
-            alert("Build info updated!");
-          } else {
-            alert("Failed to update build info.");
-          }
-        } catch (err) {
-          console.error(err);
-          alert("Error: Could not connect to server.");
+        const container = document.getElementById('build-list');
+        // if container had "No builds available." replace it
+        if (container.children.length === 1 && container.children[0].tagName === 'P') {
+          container.innerHTML = '';
         }
+        container.prepend(renderBuildCard(newBuildCardData)); // add to top
 
-        // Close modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('buildInfoModal'));
-        modal.hide();
-      });
-      
-      const divMap = {
-        CPU: 'selected-cpu', 'CPU Cooler': 'selected-cpuCooler',
-        Motherboard: 'selected-mobo', RAM: 'selected-ram',
-        GPU: 'selected-gpu', Storage: 'selected-storage',
-        Case: 'selected-case', 'Power Supply': 'selected-psu'
-      };
-      const keyMap = {
-        CPU: 'selectedCPU', 'CPU Cooler': 'selectedCpuCooler',
-        Motherboard: 'selectedMotherboard', RAM: 'selectedRAM',
-        GPU: 'selectedGPU', Storage: 'selectedStorage',
-        Case: 'selectedCase', 'Power Supply': 'selectedPSU'
-      };
-      const endpointMap = {
-        CPU: 'cpus', 'CPU Cooler': 'cpucoolers',
-        Motherboard: 'motherboards', RAM: 'rams',
-        GPU: 'gpus', Storage: 'storages',
-        Case: 'cases', 'Power Supply': 'psus'
-      };
+      } catch (error) {
+        console.error('Error saving build:', error);
+        alert('Error saving build: ' + (error.message || 'Unknown'));
+      }
+    });
 
-      function ensureNoResultsLi() {
-        let li = listElement.querySelector('li[data-no-results]');
-        if (!li) {
-          li = document.createElement('li');
-          li.className = 'list-group-item text-muted';
-          li.dataset.noResults = '1';
-          li.textContent = 'No results found';
-          li.style.display = 'none';
-          listElement.appendChild(li);
-        }
-        return li;
+    // Helper: attempt to get current user's name from token payload (optional)
+    async function getCurrentUserName() {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return null;
+        // if token is a JWT, decode payload
+        const payload = token.split('.')[1];
+        if (!payload) return null;
+        const decoded = JSON.parse(decodeURIComponent(escape(window.atob(payload.replace(/-/g, '+').replace(/_/g, '/')))));
+        return decoded.name || decoded.email || decoded.Username || null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    /*******************************
+     * Rating & Comments (keeps original behavior)
+     *******************************/
+    function showRatingModal(buildId) {
+      currentBuildId = buildId;
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please login to rate builds");
+        return;
       }
 
-      function applyFilter(query) {
-        let visible = 0;
-        listElement.querySelectorAll('li:not([data-no-results])').forEach(li => {
-          const show = (li.dataset.search || li.textContent || '').toLowerCase().includes(query);
-          li.style.display = show ? '' : 'none';
-          if (show) visible++;
-        });
-        ensureNoResultsLi().style.display = query && visible === 0 ? '' : 'none';
-      }
-
-      searchInput.addEventListener('input', () => applyFilter(searchInput.value.toLowerCase()));
-
-      function updateTotals() {
-        let totalPrice = 0, totalWattage = 0;
-        Object.values(keyMap).forEach(key => {
-          const item = JSON.parse(localStorage.getItem(key));
-          if (item) {
-            totalPrice += parseFloat(item.price) || 0;
-            totalWattage += parseFloat(item.wattage) || 0;
-          }
-        });
-        totalPriceEl.textContent = `Total Price: RM${totalPrice.toFixed(2)}`;
-        totalWattageEl.textContent = `Estimated Wattage: ${totalWattage}W`;
-
-      }
-      function updateCompatibilityButton() {
-        const selected = {
-          cpu: JSON.parse(localStorage.getItem("selectedCPU")),
-          motherboard: JSON.parse(localStorage.getItem("selectedMotherboard")),
-          ram: JSON.parse(localStorage.getItem("selectedRAM")),
-          gpu: JSON.parse(localStorage.getItem("selectedGPU")),
-          psu: JSON.parse(localStorage.getItem("selectedPSU")),
-          case: JSON.parse(localStorage.getItem("selectedCase")),
-          cooler: JSON.parse(localStorage.getItem("selectedCpuCooler"))
-        };
-
-        const issues = [];
-
-        if(selected.cpu && selected.motherboard && selected.motherboard.CPU && !selected.motherboard.CPU.includes(selected.cpu.socket))
-          issues.push('CPU socket mismatch');
-
-        if(selected.ram && selected.motherboard && selected.motherboard.memory && !selected.motherboard.memory.includes(selected.ram.memory_type))
-          issues.push('RAM type mismatch');
-
-        if(selected.psu){
-          const required = (parseInt(selected.cpu?.wattage)||0)+(parseInt(selected.gpu?.wattage)||0)+150;
-          if(parseInt(selected.psu.power||0)<required)
-            issues.push('PSU may be insufficient');
-        }
-
-        if(selected.case && selected.motherboard?.form_factor && selected.case.mainboard_support && !selected.case.mainboard_support.includes(selected.motherboard.form_factor))
-          issues.push('Case does not support motherboard');
-
-        if(selected.case && selected.gpu?.gpu_length && selected.case.gpu_length && parseInt(selected.gpu.gpu_length)>parseInt(selected.case.gpu_length))
-          issues.push('GPU length exceeds case limit');
-
-        if(selected.case && selected.cooler?.dimension && selected.case.cpuCooler_height && parseInt(selected.cooler.dimension)>parseInt(selected.case.cpuCooler_height))
-          issues.push('CPU cooler too tall');
-
-        // Update button
-        if (issues.length > 0) {
-          checkCompatibilityBtn.classList.remove('btn-primary');
-          checkCompatibilityBtn.classList.add('btn-danger');
-          checkCompatibilityBtn.innerHTML = '⚠️ Compatibility Issues';
-        } else {
-          checkCompatibilityBtn.classList.remove('btn-danger');
-          checkCompatibilityBtn.classList.add('btn-primary');
-          checkCompatibilityBtn.innerHTML = '⚙️ Check Compatibility';
-        }
-      }
-
-      function checkCompatibility() {
-        const selected = {
-          cpu: JSON.parse(localStorage.getItem("selectedCPU")),
-          motherboard: JSON.parse(localStorage.getItem("selectedMotherboard")),
-          ram: JSON.parse(localStorage.getItem("selectedRAM")),
-          gpu: JSON.parse(localStorage.getItem("selectedGPU")),
-          psu: JSON.parse(localStorage.getItem("selectedPSU")),
-          case: JSON.parse(localStorage.getItem("selectedCase")),
-          cooler: JSON.parse(localStorage.getItem("selectedCpuCooler"))
-        };
-
-        const issues = [];
-
-        if(selected.cpu && selected.motherboard && selected.motherboard.CPU && !selected.motherboard.CPU.includes(selected.cpu.socket))
-          issues.push(`❌ CPU socket (${selected.cpu.socket}) not compatible with motherboard (${selected.motherboard.CPU})`);
-
-        if(selected.ram && selected.motherboard && selected.motherboard.memory && !selected.motherboard.memory.includes(selected.ram.memory_type))
-          issues.push(`❌ RAM type (${selected.ram.memory_type}) not supported by motherboard (${selected.motherboard.memory})`);
-
-        if(selected.psu){
-          const required = (parseInt(selected.cpu?.wattage)||0)+(parseInt(selected.gpu?.wattage)||0)+150;
-          if(parseInt(selected.psu.power||0)<required)
-            issues.push(`❌ PSU power may be insufficient. Recommended ≥ ${required}W`);
-        }
-
-        if(selected.case && selected.motherboard?.form_factor && selected.case.mainboard_support && !selected.case.mainboard_support.includes(selected.motherboard.form_factor))
-          issues.push(`❌ Case does not support ${selected.motherboard.form_factor} motherboards`);
-
-        if(selected.case && selected.gpu?.gpu_length && selected.case.gpu_length && parseInt(selected.gpu.gpu_length)>parseInt(selected.case.gpu_length))
-          issues.push(`❌ GPU length exceeds case limit`);
-
-        if(selected.case && selected.cooler?.dimension && selected.case.cpuCooler_height && parseInt(selected.cooler.dimension)>parseInt(selected.case.cpuCooler_height))
-          issues.push(`❌ CPU cooler height exceeds case limit`);
-
-        // Update the modal body
-        const modalBody = document.getElementById("compatibilityModalBody");
-        modalBody.innerHTML = issues.length > 0 ? issues.map(i => `<p>${i}</p>`).join('') : '<p class="text-success">✅ All selected components are compatible!</p>';
-
-        // Change button appearance if errors exist
-        if (issues.length > 0) {
-          checkCompatibilityBtn.classList.remove('btn-primary');
-          checkCompatibilityBtn.classList.add('btn-danger');
-          checkCompatibilityBtn.innerHTML = '⚠️ Compatibility Issues';
-        } else {
-          checkCompatibilityBtn.classList.remove('btn-danger');
-          checkCompatibilityBtn.classList.add('btn-primary');
-          checkCompatibilityBtn.innerHTML = '⚙️ Check Compatibility';
-        }
-
-        // Show the modal
-        const compatibilityModal = new bootstrap.Modal(document.getElementById('compatibilityModal'));
-        compatibilityModal.show();
-      }
-
-      checkCompatibilityBtn.addEventListener('click', checkCompatibility);
-
-      addButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-          const componentType = btn.closest('.part-row').querySelector('span').textContent;
-          openModal(componentType);
-        });
+      // Reset rating
+      userRating = 0;
+      document.querySelectorAll('#starRating .star').forEach(star => {
+        star.style.opacity = '0.3';
       });
 
-      closeButton.addEventListener('click', () => {
-        modal.classList.add('d-none');
-        modal.style.display = 'none';
+      const modal = new bootstrap.Modal(document.getElementById('ratingModal'));
+      modal.show();
+    }
+
+    function showCommentsModal(buildId) {
+      currentBuildId = buildId;
+      loadComments(buildId);
+      const modal = new bootstrap.Modal(document.getElementById('commentsModal'));
+      modal.show();
+    }
+
+    async function viewBuildDetails(buildId) {
+      // Could navigate to detailed build page or show modal
+      console.log('View build details:', buildId);
+      // for example: window.location = `/build.html?id=${buildId}`;
+    }
+
+    // Rating UI interactions
+    document.querySelectorAll('#starRating .star').forEach(star => {
+      star.addEventListener('click', function() {
+        userRating = parseInt(this.dataset.rating);
+        updateStarDisplay(userRating);
       });
 
-      async function openModal(componentType) {
-        modalTitle.textContent = `Select a ${componentType}`;
-        listElement.innerHTML = '<li class="list-group-item">Loading...</li>';
-        try {
-          const res = await fetch(`http://localhost:3001/api/${endpointMap[componentType]}`);
-          const data = await res.json();
-          listElement.innerHTML = '';
-          if (!Array.isArray(data) || data.length === 0) {
-            listElement.innerHTML = `<li class="list-group-item text-muted">No ${componentType}s available.</li>`;
-          } else {
-            data.forEach(item => {
-              const li = document.createElement('li');
-              li.className = 'list-group-item';
-              li.dataset.search = item.name.toLowerCase();
-              li.innerHTML = `<div class="d-flex justify-content-between align-items-center">
-                <div><strong>${item.name}</strong><div class="small">RM${parseFloat(item.price).toFixed(2)}</div></div>
-                <img src="${item.image_url||'public/images/placeholder.png'}" alt="${item.name}" style="width:50px;height:auto;" class="rounded">
-              </div>`;
-              li.addEventListener('click', () => {
-                const div = document.getElementById(divMap[componentType]);
-                div.innerHTML = `<div class="d-flex align-items-center mt-2">
-                  <img src="${item.image_url}" alt="${item.name}" style="width:60px;height:auto;" class="me-3 rounded">
-                  <div><div class="fw-bold">${item.name}</div><div class="small">Price: RM${parseFloat(item.price).toFixed(2)}</div></div>
-                  <button class="btn btn-sm btn-outline-danger ms-2" onclick="clearComponent('${componentType}')">&times;</button>
-                </div>`;
-                localStorage.setItem(keyMap[componentType], JSON.stringify(item));
-                updateTotals();
-                updateCompatibilityButton();
-                modal.classList.add('d-none');
-                modal.style.display = 'none';
-              });
-              listElement.appendChild(li);
-            });
-            ensureNoResultsLi();
-          }
-          searchInput.value = '';
-          applyFilter('');
-          modal.classList.remove('d-none');
-          modal.style.display = 'block';
-        } catch (err) {
-          console.error(err);
-          listElement.innerHTML = `<li class="list-group-item text-danger">Failed to load ${componentType} data.</li>`;
-        }
+      star.addEventListener('mouseenter', function() {
+        const hoverRating = parseInt(this.dataset.rating);
+        updateStarDisplay(hoverRating);
+      });
+    });
+
+    document.getElementById('starRating').addEventListener('mouseleave', function() {
+      updateStarDisplay(userRating);
+    });
+
+    function updateStarDisplay(rating) {
+      document.querySelectorAll('#starRating .star').forEach((star, index) => {
+        star.style.opacity = (index + 1) <= rating ? '1' : '0.3';
+      });
+    }
+
+    // Submit rating
+    document.getElementById('submitRatingBtn').addEventListener('click', async () => {
+      if (userRating === 0) {
+        alert('Please select a rating');
+        return;
       }
 
-      window.clearComponent = (componentType) => {
-        const key = keyMap[componentType];
-        const div = document.getElementById(divMap[componentType]);
-        if (key && div) {
-          localStorage.removeItem(key);
-          div.innerHTML = '';
-          updateTotals();
-          updateCompatibilityButton();
-        }
-      };
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please login to submit ratings");
+        return;
+      }
 
-      // Load saved components
-      Object.entries(keyMap).forEach(([label, key]) => {
-        const item = JSON.parse(localStorage.getItem(key));
-        if (item) {
-          const div = document.getElementById(divMap[label]);
-          div.innerHTML = `
-            <div class="d-flex align-items-center mt-2">
-              <img src="${item.image_url}" alt="${item.name}" style="width:60px;height:auto;" class="me-3 rounded">
-              <div><div class="fw-bold">${item.name}</div><div class="small">Price: RM${parseFloat(item.price).toFixed(2)}</div></div>
-              <button class="btn btn-sm btn-outline-danger ms-2" onclick="clearComponent('${label}')">&times;</button>
+      try {
+        const response = await fetch('/api/builds/rate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            builds_id: currentBuildId,
+            rating: userRating,
+            comment: document.getElementById('ratingComment').value
+          })
+        });
+
+        if (!response.ok) {
+          const error = await response.json().catch(()=>({message:'Failed'}));
+          throw new Error(error.message || 'Failed to submit rating');
+        }
+
+        alert('✅ Rating submitted successfully!');
+        bootstrap.Modal.getInstance(document.getElementById('ratingModal')).hide();
+        // Optionally refresh the builds list to show new average rating
+        loadBuilds();
+
+      } catch (error) {
+        console.error('Error submitting rating:', error);
+        alert('Error: ' + error.message);
+      }
+    });
+
+    /*******************************
+     * Comments functions
+     *******************************/
+    async function loadComments(buildId) {
+      try {
+        const response = await fetch(`/api/builds/${buildId}/comments`);
+        if (!response.ok) throw new Error('Failed to load comments');
+        const comments = await response.json();
+
+        const commentsList = document.getElementById('commentsList');
+        if (!comments || comments.length === 0) {
+          commentsList.innerHTML = '<p class="text-muted">No comments yet. Be the first to comment!</p>';
+          return;
+        }
+
+        commentsList.innerHTML = comments.map(comment => `
+          <div class="comment mb-3 p-3 border rounded">
+            <div class="d-flex align-items-center mb-2">
+              <div class="user-avatar me-2" style="width:24px;height:24px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:0.75rem;">
+                ${(comment.username || 'U').charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <div class="small fw-bold">${comment.username || 'Anonymous'}</div>
+                <div class="small text-muted">${formatDate(comment.created_at)}</div>
+              </div>
             </div>
-          `;
+            <div class="comment-content">${comment.comment}</div>
+          </div>
+        `).join('');
+
+      } catch (error) {
+        console.error('Error loading comments:', error);
+        document.getElementById('commentsList').innerHTML = '<p class="text-danger">Failed to load comments</p>';
+      }
+    }
+
+    // Submit comment
+    document.getElementById('submitCommentBtn').addEventListener('click', async () => {
+      const commentText = document.getElementById('newComment').value.trim();
+      if (!commentText) {
+        alert('Please enter a comment');
+        return;
+      }
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please login to comment");
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/builds/comment', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            builds_id: currentBuildId,
+            comment: commentText
+          })
+        });
+
+        if (!response.ok) {
+          const error = await response.json().catch(()=>({message:'Failed'}));
+          throw new Error(error.message || 'Failed to submit comment');
         }
-      });
-      updateTotals();
 
+        document.getElementById('newComment').value = '';
+        loadComments(currentBuildId); // Refresh comments
+        loadBuilds(); // Refresh builds to show comment count
 
-  });  
+      } catch (error) {
+        console.error('Error submitting comment:', error);
+        alert('Error: ' + error.message);
+      }
+    });
+
+    /*******************************
+     * Initialization
+     *******************************/
+    // wire sort/filter (simple hooks - can expand)
+    document.getElementById('sortSelect').addEventListener('change', loadBuilds);
+    document.getElementById('searchBuilds').addEventListener('input', () => {
+      // naive client-side filter: re-run loadBuilds and filter after fetch
+      // For now, reload builds which will pick server-side sorting if implemented
+      loadBuilds();
+    });
+
+    // load builds on page open
+    loadBuilds();
   </script>
-  <script src="public/js/bootstrap.bundle.min.js"></script>
-  <script src="public/js/common.js"></script>
 </body>
 </html>
