@@ -8,7 +8,6 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 250px;
   height: 100vh;
   background-color: #f8f9fa; /* light mode */
   border-right: 1px solid #ddd;
@@ -17,16 +16,22 @@
   color: #212529; /* default color mode */
 }
 
-#cases-grid {
+#case-grid {
+  margin-top: -5px;
+  width: 100%;
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  justify-content: center;
+  justify-content: flex-start; /* Align left */
 }
 
-.cases-col {
-  width: calc(20% - 0.5rem); /* 5 columns */
+.case-col {
+  width: calc(20% - 0.5rem);
   min-width: 150px;
+}
+
+.col-md-10 {
+  padding-left: 0 !important;
 }
 
 .cases-card {
@@ -126,4 +131,124 @@ body.dark .cases-card .btn-primary {
 
 body.dark .cases-card .btn-primary:hover {
   background-color: #2563eb;
+}
+
+/* Advanced Filters Styling */
+.card {
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+body.dark .card {
+  background-color: #1e1e1e;
+  border-color: #333;
+}
+
+body.dark .card-header {
+  background-color: #2d3748;
+  border-bottom-color: #4a5568;
+  color: #f1f1f1;
+}
+
+body.dark .form-control,
+body.dark .form-select {
+  background-color: #2d3748;
+  border-color: #4a5568;
+  color: #f1f1f1;
+}
+
+body.dark .form-control:focus,
+body.dark .form-select:focus {
+  background-color: #2d3748;
+  border-color: #4299e1;
+  color: #f1f1f1;
+  box-shadow: 0 0 0 0.2rem rgba(66, 153, 225, 0.25);
+}
+
+body.dark .input-group-text {
+  background-color: #2d3748;
+  border-color: #4a5568;
+  color: #f1f1f1;
+}
+
+body.dark .form-label {
+  color: #f1f1f1;
+}
+
+/* case Specs Styling */
+.case-specs {
+  background-color: #f8f9fa;
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin: 0.5rem 0;
+}
+.case-specs span {
+    color: #000000;
+}
+
+body.dark .case-specs {
+  background-color: #2d3748;
+  color: #cbd5e0;
+}
+
+body.dark .case-specs span {
+    color: #ffffff;
+}
+
+/* Filter Results Info */
+.filter-info {
+  background-color: #e3f2fd;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+body.dark .filter-info {
+  background-color: #1e3a5f;
+  color: #9fc5e8;
+}
+
+/* Loading States */
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #6c757d;
+}
+
+body.dark .loading {
+  color: #9ca3af;
+}
+
+#filter-column {
+  position: sticky;
+  top: 80px;      /* so it stays visible when scrolling */
+  height: fit-content;
+    max-width: 250px;
+}
+
+.filter-card .row > div {
+  width: 100% !important;
+  margin-bottom: 1rem;
+}
+
+/* If you want filters to scroll independently */
+.sticky-filters {
+  position: sticky;
+  top: 90px; /* adjust depending on navbar height */
+}
+
+.filter-card .row {
+  display: block;
+}
+
+body.dark .filter-card {
+  background: #1e1e1e;
+  border-color: #333;
+  color: #fff;
 }

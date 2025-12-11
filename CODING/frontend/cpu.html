@@ -17,28 +17,28 @@
         <div class="container-fluid">
           <h2 class="text-center mb-4">Select Your CPU</h2>
           <div class="row">
-            <div class="col-12">
+            <div class="col-md-2" id="filter-column">
               <!-- Advanced Filters Section -->
-              <div class="card mb-4">
+              <div class="card mb-4 filter-card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                   <h5 class="mb-0">Advanced Filters</h5>
                   <button class="btn btn-sm btn-outline-secondary" id="clearFiltersBtn">Clear All</button>
                 </div>
                 <div class="card-body">
                   <div class="row">
-                    <div class="col-md-3">
+                    <div class="col-12">
                       <label class="form-label">Brand</label>
                       <select class="form-select" id="brandFilter">
                         <option value="">All Brands</option>
                       </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-12">
                       <label class="form-label">Socket</label>
                       <select class="form-select" id="socketFilter">
                         <option value="">All Sockets</option>
                       </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-12">
                       <label class="form-label">Category</label>
                       <select class="form-select" id="categoryFilter">
                         <option value="">All Categories</option>
@@ -47,7 +47,7 @@
                         <option value="datacenter">Datacenter</option>
                       </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-12">
                       <label class="form-label">Cores</label>
                       <select class="form-select" id="coresFilter">
                         <option value="">All Cores</option>
@@ -55,19 +55,19 @@
                     </div>
                   </div>
                   <div class="row mt-3">
-                    <div class="col-md-3">
+                    <div class="col-12">
                       <label class="form-label">Min Cores</label>
                       <input type="number" class="form-control" id="minCoresFilter" placeholder="Min cores">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-12">
                       <label class="form-label">Max TDP (Watts)</label>
                       <input type="number" class="form-control" id="maxTdpFilter" placeholder="Max TDP">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-12">
                       <label class="form-label">Min Price</label>
                       <input type="number" class="form-control" id="minPriceFilter" placeholder="RM 0">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-12">
                       <label class="form-label">Max Price</label>
                       <input type="number" class="form-control" id="maxPriceFilter" placeholder="RM 10000">
                     </div>
@@ -79,19 +79,20 @@
                   </div>
                 </div>
               </div>
-
-              <!-- Search Bar -->
-              <div class="row mb-4">
-                <div class="col-12">
+            </div>
+            <div class="col-md-10">
+              <div class="row mb-2">
+                <div class="col-10">
                   <div class="input-group">
                     <span class="input-group-text">🔍</span>
                     <input type="text" class="form-control" id="searchInput" placeholder="Search CPUs...">
                   </div>
                 </div>
               </div>
+
+              <div id="cpu-grid"></div>
+              <div id="pagination-container" class="mt-4 text-center"></div>
             </div>
-            <div id="cpu-grid" class="col-12"></div>
-            <div id="pagination-container" class="mt-4 text-center"></div>
           </div>
         </div>
       </div>
@@ -218,13 +219,15 @@
         const col = document.createElement("div");
         col.className = "cpu-col";
 
-        const imageUrl = cpu.image_url?.startsWith("http")
-          ? cpu.image_url
-          : `/images/${cpu.image_url?.replace(/^images[\\/]/, "")}`;
+        const imageUrl = cpu.image_url && cpu.image_url.trim() !== ""
+          ? (cpu.image_url.startsWith("http")
+              ? cpu.image_url
+              : `/images/${cpu.image_url.replace(/^images[\\/]/, "")}`)
+          : "https://via.placeholder.com/250x200?text=No+Image";
 
         col.innerHTML = `
           <div class="cpu-card text-center shadow-sm p-3 mb-4 rounded">
-            <img src="${imageUrl}" alt="${cpu.name}" width="250" class="mb-2" onerror="this.src='https://via.placeholder.com/250x200?text=No+Image'">
+            <img src="${imageUrl}" alt="${cpu.name}" width="250" class="mb-2" onerror="this.src='https://via.placeholder.com/250x200?text=No+Image'; this.onerror=null;">
             <h6 class="fw-semibold">${cpu.name}</h6>
             <div class="cpu-specs text-muted small">
               <div class="d-flex justify-content-between">
