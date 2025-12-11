@@ -153,7 +153,7 @@
     </div>
   </div>
 
-  <!-- Add Build Modal (Option A) -->
+  <!-- Add Build Modal -->
   <div class="modal fade" id="addBuildModal" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -214,9 +214,6 @@
   <script src="public/js/common.js"></script>
 
   <script>
-    /*******************************
-     * Helper utilities & globals
-     *******************************/
     let currentBuildId = null; // for comments/ratings
     let userRating = 0;
 
@@ -348,9 +345,7 @@
       return col;
     }
 
-    /*******************************
-     * Load existing completed builds (these are the ones published via /api/save-build)
-     *******************************/
+
     async function loadBuilds() {
       try {
         const container = document.getElementById("build-list");
@@ -375,9 +370,6 @@
       }
     }
 
-    /*******************************
-     * Add Build flow (Option A)
-     *******************************/
     const addBuildBtn = document.getElementById('addBuildBtn');
     const addBuildModalEl = document.getElementById('addBuildModal');
     const savedBuildSelect = document.getElementById('savedBuildSelect');
@@ -484,7 +476,6 @@
       }
     });
 
-    // Submit new completed build (taking component IDs from selected saved build)
     document.getElementById('submitNewBuildBtn').addEventListener('click', async () => {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -513,9 +504,6 @@
         return;
       }
 
-      // Prepare body using the saved build's component IDs (backend expects cpus_id, gpus_id, etc.)
-      // The /api/my-builds returned structure in your backend maps to:
-      // sb.cpu.id, sb.gpu.id, sb.motherboard.id, sb.ram.id, sb.cpucooler.id, sb.storage.id, sb.case.id, sb.psu.id
       const body = {
         build_name: buildName,
         build_description: buildDescription,
@@ -547,11 +535,9 @@
 
         const result = await res.json();
 
-        // successful -> close modal and append new card to UI.
         alert('✅ Build added successfully!');
         bootstrap.Modal.getInstance(addBuildModalEl).hide();
 
-        // We can append a minimal card using the saved build preview + returned build_id
         const newBuildCardData = {
           builds_id: result.build_id || result.builds_id || '',
           builds_name: buildName,
@@ -580,7 +566,7 @@
       }
     });
 
-    // Helper: attempt to get current user's name from token payload (optional)
+
     async function getCurrentUserName() {
       try {
         const token = localStorage.getItem('token');
@@ -595,9 +581,6 @@
       }
     }
 
-    /*******************************
-     * Rating & Comments (keeps original behavior)
-     *******************************/
     function showRatingModal(buildId) {
       currentBuildId = buildId;
       const token = localStorage.getItem("token");
@@ -624,9 +607,9 @@
     }
 
     async function viewBuildDetails(buildId) {
-      // Could navigate to detailed build page or show modal
+
       console.log('View build details:', buildId);
-      // for example: window.location = `/build.html?id=${buildId}`;
+
     }
 
     // Rating UI interactions
@@ -695,9 +678,6 @@
       }
     });
 
-    /*******************************
-     * Comments functions
-     *******************************/
     async function loadComments(buildId) {
       try {
         const response = await fetch(`/api/builds/${buildId}/comments`);
@@ -773,18 +753,13 @@
       }
     });
 
-    /*******************************
-     * Initialization
-     *******************************/
-    // wire sort/filter (simple hooks - can expand)
+
     document.getElementById('sortSelect').addEventListener('change', loadBuilds);
     document.getElementById('searchBuilds').addEventListener('input', () => {
-      // naive client-side filter: re-run loadBuilds and filter after fetch
-      // For now, reload builds which will pick server-side sorting if implemented
+
       loadBuilds();
     });
 
-    // load builds on page open
     loadBuilds();
   </script>
 </body>
