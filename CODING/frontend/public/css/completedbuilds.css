@@ -1,62 +1,461 @@
-/* Dark mode */
+/* ============================================
+   Completed Builds Page Styles
+   ============================================ */
+
+/* Base body styles - Light mode is default */
+body {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  color: #212529;
+}
+
 body.dark {
-  background-color: #1a1a1a;
-  color: #f1f1f1;
+  background-color: #1a1a2e;
+  color: #eaeaea;
 }
 
-body.dark .card {
-  background-color: #242424;
-  color: #f1f1f1;
-}
-
-body.dark .card-title {
-  color: #fff;
-}
-
-body.dark .card-subtitle {
-  color: #aaa;
-}
-
-body.dark .form-control,
-body.dark .form-select,
-body.dark .form-range {
-  background-color: #2e2e2e;
-  color: #f1f1f1;
-  border: 1px solid #444;
-}
-
-body.dark .form-check-label {
-  color: #ccc;
-}
-
-/* Light mode */
 body.light {
-  background-color: #f8f9fa;
+  background-color: #f5f5f5;
   color: #212529;
 }
 
-body.light .card {
+/* ============================================
+   Star Rating Component
+   ============================================ */
+.star-rating {
+  display: inline-flex;
+  gap: 2px;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.star-rating .star {
+  color: #6c757d;
+  transition: all 0.15s ease;
+}
+
+.star-rating .star.filled {
+  color: #ffc107;
+}
+
+.star-rating .star.half {
+  color: #ffc107;
+  position: relative;
+}
+
+.star-rating .star.empty {
+  color: #6c757d;
+}
+
+.star-rating.interactive .star {
+  cursor: pointer;
+  font-size: 1.5rem;
+}
+
+.star-rating.interactive .star:hover {
+  transform: scale(1.2);
+}
+
+.star-rating.interactive .star.filled {
+  color: #ffc107;
+}
+
+.star-rating.small {
+  font-size: 0.875rem;
+}
+
+.star-rating.large {
+  font-size: 1.5rem;
+}
+
+/* ============================================
+   Build Cards
+   ============================================ */
+.build-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
   background-color: #fff;
-  color: #212529;
   border: 1px solid #ddd;
 }
 
-body.light .card-title {
-  color: #212529;
+.build-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-body.light .card-subtitle {
-  color: #555;
+body.dark .build-card {
+  background-color: #6c757d;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-body.light .form-control,
-body.light .form-select,
-body.light .form-range {
-  background-color: #fff;
-  color: #212529;
-  border: 1px solid #ccc;
+body.dark .build-card:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
-body.light .form-check-label {
-  color: #212529;
+/* User Avatar */
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.user-avatar-small {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   Modal Styles
+   ============================================ */
+body.dark .modal-content.bg-dark {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.dark .modal-header.border-secondary,
+body.dark .modal-footer.border-secondary {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Component Table in Detail Modal */
+body.dark .table-dark {
+  --bs-table-bg: #2d2d44;
+  --bs-table-striped-bg: #343452;
+  --bs-table-hover-bg: #3d3d5c;
+}
+
+body.dark .table-dark th,
+body.dark .table-dark td {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark .table-primary {
+  --bs-table-bg: #4e4e7a;
+  --bs-table-color: #fff;
+}
+
+/* ============================================
+   Comment Styles
+   ============================================ */
+.comment-item {
+  border-left: 3px solid #667eea;
+  background-color: #fff !important;
+}
+
+.comment-content {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+body.dark .comment-item {
+  background-color: #1a1a2e !important;
+}
+
+/* ============================================
+   Form Styles
+   ============================================ */
+body.dark .form-control.bg-dark,
+body.dark .form-control.bg-secondary,
+body.dark .form-select.bg-dark,
+body.dark .form-select.bg-secondary {
+  color: #fff;
+}
+
+body.dark .form-control.bg-dark:focus,
+body.dark .form-control.bg-secondary:focus,
+body.dark .form-select.bg-dark:focus,
+body.dark .form-select.bg-secondary:focus {
+  background-color: #3d3d5c;
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  color: #fff;
+}
+
+.form-control::placeholder {
+  color: #6c757d;
+}
+
+/* ============================================
+   Pagination Styles
+   ============================================ */
+.pagination .page-item.active .page-link {
+  background-color: #667eea;
+  border-color: #667eea;
+}
+
+body.dark .pagination .page-link.bg-dark {
+  background-color: #2d2d44;
+  color: #fff;
+}
+
+body.dark .pagination .page-link.bg-dark:hover {
+  background-color: #3d3d5c;
+  color: #fff;
+}
+
+body.dark .pagination .page-item.disabled .page-link {
+  background-color: #1a1a2e;
+  color: #6c757d;
+}
+
+/* ============================================
+   Button Styles
+   ============================================ */
+.btn-outline-primary {
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.btn-outline-primary:hover {
+  background-color: #667eea;
+  border-color: #667eea;
+  color: #fff;
+}
+
+.btn-primary {
+  background-color: #667eea;
+  border-color: #667eea;
+}
+
+.btn-primary:hover {
+  background-color: #5a6fd6;
+  border-color: #5a6fd6;
+}
+
+/* ============================================
+   Badge Styles
+   ============================================ */
+.badge.bg-primary {
+  background-color: #667eea !important;
+}
+
+body.dark .badge.bg-dark {
+  background-color: #1a1a2e !important;
+}
+
+/* ============================================
+   Alert Styles
+   ============================================ */
+body.dark .alert-info {
+  background-color: rgba(102, 126, 234, 0.2);
+  border-color: rgba(102, 126, 234, 0.3);
+  color: #a8b8ff;
+}
+
+body.dark .alert-danger {
+  background-color: rgba(220, 53, 69, 0.2);
+  border-color: rgba(220, 53, 69, 0.3);
+  color: #f8a9b1;
+}
+
+body.dark .alert-success {
+  background-color: rgba(25, 135, 84, 0.2);
+  border-color: rgba(25, 135, 84, 0.3);
+  color: #75d9a5;
+}
+
+/* ============================================
+   Empty State Styles
+   ============================================ */
+#emptyState svg {
+  opacity: 0.5;
+}
+
+#emptyState h4 {
+  color: #9ca3af;
+}
+
+/* ============================================
+   Loading Indicator
+   ============================================ */
+#loadingIndicator .spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* ============================================
+   Responsive Adjustments
+   ============================================ */
+@media (max-width: 768px) {
+  .build-card .card-title {
+    font-size: 1rem;
+  }
+  
+  .star-rating {
+    font-size: 0.875rem;
+  }
+  
+  .star-rating.interactive .star {
+    font-size: 1.25rem;
+  }
+  
+  .modal-dialog.modal-xl {
+    max-width: 100%;
+    margin: 0.5rem;
+  }
+  
+  .table-responsive {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .d-flex.flex-wrap.gap-2 {
+    flex-direction: column;
+  }
+  
+  #sortSelect,
+  #searchBuilds {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  .build-card .user-avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 0.75rem;
+  }
+}
+
+/* ============================================
+   Card Text Truncation
+   ============================================ */
+.text-truncate-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.text-truncate-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ============================================
+   Star Rating Empty State for Light Mode
+   ============================================ */
+.star-rating .star.empty {
+  color: #ced4da;
+}
+
+body.dark .star-rating .star.empty {
+  color: #6c757d;
+}
+
+/* ============================================
+   Empty State for Light Mode
+   ============================================ */
+#emptyState svg {
+  color: #6c757d !important;
+}
+
+/* ============================================
+   Build Preview Card in Submit Modal
+   ============================================ */
+#buildPreview {
+  border: 1px solid #dee2e6;
+}
+
+body.dark #buildPreview {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ============================================
+   Animation for Rating Submission
+   ============================================ */
+@keyframes ratingPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.star-rating.interactive .star.filled {
+  animation: ratingPulse 0.3s ease;
+}
+
+/* ============================================
+   Scrollbar Styling
+   ============================================ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+body.dark ::-webkit-scrollbar-track {
+  background: #1a1a2e;
+}
+
+body.dark ::-webkit-scrollbar-thumb {
+  background: #3d3d5c;
+}
+
+body.dark ::-webkit-scrollbar-thumb:hover {
+  background: #4e4e7a;
+}
+
+/* ============================================
+   Focus States for Accessibility
+   ============================================ */
+.btn:focus,
+.form-control:focus,
+.form-select:focus {
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.5);
+}
+
+.build-card:focus-visible {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* ============================================
+   Delete Comment Button
+   ============================================ */
+.delete-comment-btn {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.delete-comment-btn:hover {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  color: #fff;
 }
