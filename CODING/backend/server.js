@@ -54,7 +54,6 @@ app.get('/api/my-builds', authenticateToken, (req, res) => {
     SELECT 
       b.builds_id,
       b.builds_name,
-      b.created_at,
       c.id AS cpu_id, c.name AS cpu_name, c.price AS cpu_price, c.image_url AS cpu_image,
       g.id AS gpu_id, g.name AS gpu_name, g.price AS gpu_price, g.image_url AS gpu_image,
       m.id AS motherboard_id, m.name AS motherboard_name, m.price AS motherboard_price, m.image_url AS motherboard_image,
@@ -194,7 +193,7 @@ app.get('/api/cases', (req, res) => {
 // get cpu cooler data
 app.get('/api/cpucoolers', (req, res) => {
   const query = `
-    SELECT id, name, price, image_url, product_url, liquid_cooling, dimension, heatpipes, wattage
+    SELECT id, name, price, image_url, product_url, liquid_cooling, dimension, heatpipes, tdp
     FROM cpucoolers
   `;
   db.query(query, (err, results) => {
@@ -1072,6 +1071,101 @@ app.get('/api/completed-builds/:id/rating', authenticateToken, (req, res) => {
       return res.json({ rating: null });
     }
     res.json(results[0]);
+  });
+});
+
+app.get('/api/compare', (req, res) => {
+  const { category, filter } = req.query;
+
+  const allowedTables = {
+    cpus: {
+      table: 'cpus',
+      filterColumn: 'cpu_category',
+      fields: `
+        id, name, brand, price,
+        cores, threads, base_clock, boost_clock,
+        socket, wattage
+      `
+    },
+
+    gpus: {
+      table: 'gpus',
+      filterColumn: 'gpu_category',
+      fields: `
+        id, name, brand, price,
+        core_clock, memory_size, memory_type,
+        card_bus, power_connectors, wattage
+      `
+    },
+
+    ram: {
+      table: 'rams',
+      fields: `
+        id, name, price,
+        memory_speed, memory_size, memory_type
+      `
+    },
+
+    motherboards: {
+      table: 'motherboards',
+      fields: `
+        id, name, price,
+        cpu_socket, chipset,
+        memory_type, LAN, 
+        wireless_connection, 
+        form_factor, expansion_slot,
+        storage_interface
+      `
+    },
+    storage: {
+      table: 'storages',
+      fields: `
+        id, name, price, interface,
+        form_factor, readwrite,
+        capacity, storage_type, nand
+      `
+    },
+
+    psu: {
+      table: 'psus',
+      fields: `
+        id, name, price, EPS_connector,
+        SATA_connector, Dimensions, Modular,
+        color, PSU_compatibility, form_factor,
+        PCIe_connector, power, efficiency
+      `
+    },
+
+    cpuCooler: {
+      table: 'cpucoolers',
+      fields: `
+        id, name, price, liquid_cooling,
+        dimension, color, height_mm, heatpipes,
+        tdp
+      `
+    }
+  };
+
+  if (!allowedTables[category]) {
+    return res.status(400).json({ message: 'Invalid comparison category' });
+  }
+
+  const config = allowedTables[category];
+
+  let sql = `SELECT ${config.fields} FROM ${config.table}`;
+  let params = [];
+
+  if (filter && config.filterColumn) {
+    sql += ` WHERE ${config.filterColumn} = ?`;
+    params.push(filter);
+  }
+
+  db.query(sql, params, (err, results) => {
+    if (err) {
+      console.error('❌ Comparison query error:', err);
+      return res.status(500).json({ message: 'Database error' });
+    }
+    res.json(results);
   });
 });
 

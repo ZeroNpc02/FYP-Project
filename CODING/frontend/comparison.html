@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HardwareForge</title>
+    <link rel="stylesheet" href="public/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="public/css/dropdown.css" />
+    <link rel="stylesheet" href="public/css/comparison.css" />
+    <script src="public/js/security.js" defer></script>
+</head>
+<body class = "dark">
+    <div class="wrapper">
+        <aside id="sidebar-container" class="sidebar"></aside>
+        <main class="main-content">
+            <div class="container text-center mb-5">
+                <h1 class="title-4 mb-3">Component Comparison</h1>
+                <div class="row mb-3">
+                    <div class="col-md-4 mx-auto text-center">
+                        <div class="form-check form-switch d-inline-flex align-items-center">
+                            <input
+                                class="form-check-input"
+                                type="checkbox"
+                                id="highlightToggle"
+                                checked
+                            >
+                            <label class="form-check-label ms-2" for="highlightToggle">
+                                Highlight best specs
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3 justify-content-center align-items-center">
+                    <div class="col-auto">
+                        <select id="priceSort" class="form-select form-select-sm">
+                            <option value="">Sort by Price</option>
+                            <option value="asc">Lowest → Highest</option>
+                            <option value="desc">Highest → Lowest</option>
+                        </select>
+                    </div>
+
+                    <div class="col-auto">
+                        <select id="componentSelect" class="form-select form-select-sm">
+                            <option value="">Select Component</option>
+                            <option value="cpus">CPU</option>
+                            <option value="gpus">GPU</option>
+                            <option value="ram">RAM</option>
+                            <option value="motherboards">Motherboard</option>
+                            <option value="storage">Storage</option>
+                            <option value="psu">PSU</option>
+                            <option value="cpuCooler">CPU Cooler</option>
+                        </select>
+                    </div>
+
+                    <div class="col-auto">
+                        <select id="categorySelect" class="form-select form-select-sm">
+                            <option value="">Select Category</option>
+                            <option value="consumer">Consumer</option>
+                            <option value="workstation">Workstation</option>
+                            <option value="datacenter">Datacenter</option>
+                        </select>
+                    </div>
+
+                    <div class="col-auto">
+                        <input id="searchInput" type="text" class="form-control form-control-sm" placeholder="Search by name">
+                    </div>
+                </div>
+                
+                <div class="table-responsive my-4">
+                    <table class="comparison-table table table-bordered">
+                        <thead id="comparisonHead"></thead>
+                        <tbody id="comparisonBody"></tbody>
+                    </table>
+                </div>
+                <div id="paginationContainer" class="text-center my-3"></div>
+            </div>
+        </main>
+    </div>
+    <div id="dropdown-container"></div>
+    <script>
+    const componentSelect = document.getElementById("componentSelect");
+    const categorySelect = document.getElementById("categorySelect");
+    const priceSort = document.getElementById("priceSort");
+    const highlightToggle = document.getElementById("highlightToggle");
+
+    const searchInput = document.getElementById("searchInput");
+    
+    searchInput.addEventListener("input", () => {
+        const term = searchInput.value.toLowerCase();
+        const filtered = cachedItems.filter(item => item.name.toLowerCase().includes(term));
+        currentPage = 1;
+        buildComparisonTable(filtered, componentSelect.value);
+    });
+
+
+    highlightToggle.addEventListener("change", toggleHighlight);
+    componentSelect.addEventListener("change", loadComparison);
+    categorySelect.addEventListener("change", loadComparison);
+    priceSort.addEventListener("change", loadComparison);
+
+    let cachedItems = [];
+
+    function loadComparison() {
+        const component = componentSelect.value;
+        const category = categorySelect.value;
+
+        if (!component) return;
+
+        const url =
+            category
+                ? `/api/compare?category=${component}&filter=${category}`
+                : `/api/compare?category=${component}`;
+
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                cachedItems = data;
+                buildComparisonTable(data, component);
+            })
+            .catch(err => console.error(err));
+    }
+
+    let currentPage = 1;
+    const rowsPerPage = 20;
+
+    function buildComparisonTable(items, component) {
+        const head = document.getElementById("comparisonHead");
+        const body = document.getElementById("comparisonBody");
+
+        
+        head.innerHTML = "";
+        body.innerHTML = "";
+
+        if (!items.length) {
+            body.innerHTML = `<tr><td colspan="10">No data found</td></tr>`;
+            return;
+        }
+
+        // Sort first
+        const sort = priceSort.value;
+        if (sort) {
+            items.sort((a, b) =>
+                sort === "asc" ? a.price - b.price : b.price - a.price
+            );
+        }
+
+        // Then paginate
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const pageItems = items.slice(start, end);
+
+        const COMPONENT_SPECS = {
+            cpus: [
+                ["Brand", "brand", false],
+                ["Price (RM)", "price", "low"],
+                ["Cores", "cores", true],
+                ["Threads", "threads", true],
+                ["Base Clock (GHz)", "base_clock", true],
+                ["Boost Clock (GHz)", "boost_clock", true],
+                ["Wattage (W)", "wattage", "low"]
+            ],
+            gpus: [
+                ["Price (RM)", "price", "low"],
+                ["Core Clock", "core_clock", true],
+                ["Memory Size", "memory_size", true],
+                ["Wattage (W)", "wattage", "low"]
+            ],
+            ram: [
+                ["Price (RM)", "price", "low"],
+                ["Memory Size", "memory_size", true],
+                ["Memory Type", "memory_type", true],
+                ["Memory Speed", "memory_speed", true]
+                
+            ],
+            motherboards: [
+                ["Price (RM)", "price", "low"],
+                ["CPU Socket", "cpu_socket", true],
+                ["Chipset", "chipset", true],
+                ["Memory Type", "memory_type", true],
+                ["LAN", "LAN", true],
+                ["Wifi", "wireless_connection", true],
+                ["Expansion Slot", "expansion_slot", true],
+                ["Storage Interface", "storage_interface", true],
+                ["Form Factor", "form_factor", true]
+            ],
+            storage: [
+                ["Price (RM)", "price", "low"],
+                ["Interface", "interface", true],
+                ["Form Factor", "form_factor", true],
+                ["Read/Write", "readwrite", true],
+                ["Capacity", "capacity", true],
+                ["Storage Type", "storage_type", true],
+                ["NAND", "nand", true]
+            ],
+            psu: [
+                ["Price (RM)", "price", "low"],
+                ["EPS Connector", "EPS_connector", true],
+                ["SATA Connector", "SATA_connector", true],
+                ["Dimensions", "Dimensions", true],
+                ["Modular", "Modular", true],
+                ["Color", "color", true],
+                ["PSU Compatibility", "PSU_compatibility", true],
+                ["Form Factor", "form_factor", true],
+                ["PCIe Connector", "PCIe_connector", true],
+                ["Power", "power", true],
+                ["Efficiency", "efficiency", true]
+            ],
+            cpuCooler: [
+                ["Price (RM)", "price", "low"],
+                ["Liquid Cooling", "liquid_cooling", true],
+                ["Dimensions", "dimension", true],
+                ["Color", "color", true],
+                ["Height (mm)", "height_mm", true],
+                ["Heatpipes", "heatpipes", true],
+                ["TDP", "tdp", "low"]
+            ]
+        };
+
+        const specs = COMPONENT_SPECS[component];
+
+        //HEADER
+        let headerRow = `<tr><th>Select</th><th>Name</th>`;
+        specs.forEach(([label]) => headerRow += `<th>${label}</th>`);
+        headerRow += `</tr>`;
+        head.innerHTML = headerRow;
+
+        //BODY
+        pageItems.forEach((item, index) => {
+            let row = `
+                <tr>
+                    <td>
+                        <input type="checkbox" class="compareCheck" data-index="${index}" checked>
+                    </td>
+                    <th>${item.name}</th>
+            `;
+            specs.forEach(([_, key]) => {
+                row += `<td data-key="${key}">${item[key] ?? "-"}</td>`;
+            });
+            row += `</tr>`;
+            body.innerHTML += row;
+        });
+        setupPagination(items.length);
+
+        if (highlightToggle.checked) {
+            highlightBest(specs);
+        }
+        setupSelection();
+
+    }
+
+    //HIGHLIGHT BEST SPEC 
+    function highlightBest(specs) {
+        specs.forEach(([_, key, rule], colIndex) => {
+            if (!rule) return;
+
+            const cells = [...document.querySelectorAll(`td[data-key="${key}"]`)];
+            const values = cells.map(td => parseFloat(td.textContent)).filter(v => !isNaN(v));
+
+            if (!values.length) return;
+
+            const best =
+                rule === "low" ? Math.min(...values) : Math.max(...values);
+
+            cells.forEach(td => {
+                if (parseFloat(td.textContent) === best) {
+                    td.classList.add("best-spec");
+                }
+            });
+        });
+    }
+
+    //COMPARE SELECTED ONLY
+    function setupSelection(specs) {
+        document.querySelectorAll(".compareCheck").forEach(check => {
+            check.addEventListener("change", () => {
+                const index = check.dataset.index;
+                const row = check.closest("tr");
+                row.style.display = check.checked ? "" : "none";
+            });
+        });
+    }
+
+    function toggleHighlight() {
+        // Remove all highlights first
+        document.querySelectorAll(".best-spec").forEach(td => {
+            td.classList.remove("best-spec");
+        });
+
+        // Re-apply if enabled
+        if (highlightToggle.checked) {
+            const component = componentSelect.value;
+            if (!component) return;
+
+            const COMPONENT_SPECS = {
+                cpus: [
+                    ["Brand", "brand", false],
+                    ["Price (RM)", "price", "low"],
+                    ["Cores", "cores", true],
+                    ["Threads", "threads", true],
+                    ["Base Clock (GHz)", "base_clock", true],
+                    ["Boost Clock (GHz)", "boost_clock", true],
+                    ["Wattage (W)", "wattage", "low"]
+                ],
+                gpus: [
+                    ["Price (RM)", "price", "low"],
+                    ["Core Clock", "core_clock", true],
+                    ["Memory Size", "memory_size", true],
+                    ["Wattage (W)", "wattage", "low"]
+                ],
+                ram: [
+                    ["Price (RM)", "price", "low"],
+                    ["Memory Size", "memory_size", true],
+                    ["Memory Speed", "memory_speed", true],
+                    ["Memory Type", "memory_type", true]
+                ],
+                motherboards: [
+                    ["Price (RM)", "price", "low"],
+                    ["CPU Socket", "cpu_socket", true],
+                    ["Chipset", "chipset", true],
+                    ["Memory Type", "memory_type", true],
+                    ["LAN", "LAN", true],
+                    ["Wifi", "wireless_connection", true],
+                    ["Expansion Slot", "expansion_slot", true],
+                    ["Storage Interface", "storage_interface", true],
+                    ["Form Factor", "form_factor", true]
+                ],
+                storage: [
+                    ["Price (RM)", "price", "low"],
+                    ["Interface", "interface", true],
+                    ["Form Factor", "form_factor", true],
+                    ["Read/Write", "readwrite", true],
+                    ["Capacity", "capacity", true],
+                    ["Storage Type", "storage_type", true],
+                    ["NAND", "nand", true]
+                ],
+                psu: [
+                    ["Price (RM)", "price", "low"],
+                    ["EPS Connector", "EPS_connector", true],
+                    ["SATA Connector", "SATA_connector", true],
+                    ["Dimensions", "Dimensions", true],
+                    ["Modular", "Modular", true],
+                    ["Color", "color", true],
+                    ["PSU Compatibility", "PSU_compatibility", true],
+                    ["Form Factor", "form_factor", true],
+                    ["PCIe Connector", "PCIe_connector", true],
+                    ["Power", "power", true],
+                    ["Efficiency", "efficiency", true]
+                ],
+                cpuCooler: [
+                    ["Price (RM)", "price", "low"],
+                    ["Liquid Cooling", "liquid_cooling", true],
+                    ["Dimensions", "dimension", true],
+                    ["Color", "color", true],
+                    ["Height (mm)", "height_mm", true],
+                    ["Heatpipes", "heatpipes", true],
+                    ["TDP", "tdp", true]
+
+                ]
+            };
+
+            highlightBest(COMPONENT_SPECS[component]);
+        }
+    }
+
+    function setupPagination(totalItems) {
+        const container = document.getElementById("paginationContainer");
+        if (!container) return;
+
+        container.innerHTML = "";
+        const totalPages = Math.ceil(totalItems / rowsPerPage);
+
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement("button");
+            btn.textContent = i;
+            btn.className = "btn btn-sm mx-1";
+            if (i === currentPage) btn.classList.add("btn-primary");
+            btn.addEventListener("click", () => {
+                currentPage = i;
+                buildComparisonTable(cachedItems, componentSelect.value);
+            });
+            container.appendChild(btn);
+        }
+    }
+
+    </script>
+    <script src="public/js/bootstrap.bundle.min.js"></script>
+    <script src="public/js/common.js"></script>
+</body>
+</html> 
