@@ -51,12 +51,6 @@
     </main>
   </div>
   <div id="dropdown-container"></div>
-  <script>
-    fetch('/public/sidebar.html')
-      .then(res => res.text())
-      .then(data => document.getElementById('sidebar-container').innerHTML = data)
-      .catch(err => console.error('Sidebar load error:', err));
-  </script>
   <script src="public/js/bootstrap.bundle.min.js"></script>
   <script src="public/js/common.js"></script>
 </body>

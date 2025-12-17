@@ -20,6 +20,8 @@
             });
         },
 
+        
+
         // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
         disableDevTools: function() {
             document.addEventListener('keydown', function(e) {
@@ -287,6 +289,7 @@
     } else {
         SecurityLayer.init();
     }
+    Object.freeze(SecurityLayer);
 
     // Global access for advanced users
     window.HFSecurity = SecurityLayer;
@@ -304,11 +307,14 @@ const HF_API = {
             '/api/builds': 'api/v1/builds/community',
             '/api/save-build': 'api/v1/builds/create',
             '/api/login': 'api/v1/auth/signin',
-            '/api/register': 'api/v1/auth/signup'
+            '/api/register': 'api/v1/auth/signup',
+            
         };
         return mappings[endpoint] || endpoint;
     }
 };
+
+Object.freeze(HF_API);
 
 // Self-destruct function if page is copied
 window.addEventListener('blur', function() {

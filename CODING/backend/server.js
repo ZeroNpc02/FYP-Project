@@ -593,5 +593,100 @@ app.get('/api/profile', verifyToken, (req, res) => {
   res.json({ message: `Welcome, ${req.user.email}!`, userId: req.user.id });
 });
 
+app.get('/api/compare', (req, res) => {
+  const { category, filter } = req.query;
+
+  const allowedTables = {
+    cpus: {
+      table: 'cpus',
+      filterColumn: 'cpu_category',
+      fields: `
+        id, name, brand, price,
+        cores, threads, base_clock, boost_clock,
+        socket, wattage
+      `
+    },
+
+    gpus: {
+      table: 'gpus',
+      filterColumn: 'gpu_category',
+      fields: `
+        id, name, brand, price,
+        core_clock, memory_size, memory_type,
+        card_bus, power_connectors, wattage
+      `
+    },
+
+    ram: {
+      table: 'rams',
+      fields: `
+        id, name, price,
+        memory_speed, memory_size, memory_type
+      `
+    },
+
+    motherboards: {
+      table: 'motherboards',
+      fields: `
+        id, name, price,
+        cpu_socket, chipset,
+        memory_type, LAN, 
+        wireless_connection, 
+        form_factor, expansion_slot,
+        storage_interface
+      `
+    },
+    storage: {
+      table: 'storages',
+      fields: `
+        id, name, price, interface,
+        form_factor, readwrite,
+        capacity, storage_type, nand
+      `
+    },
+
+    psu: {
+      table: 'psus',
+      fields: `
+        id, name, price, EPS_connector,
+        SATA_connector, Dimensions, Modular,
+        color, PSU_compatibility, form_factor,
+        PCIe_connector, power, efficiency
+      `
+    },
+
+    cpuCooler: {
+      table: 'cpucoolers',
+      fields: `
+        id, name, price, liquid_cooling,
+        dimension, color, height_mm, heatpipes,
+        tdp
+      `
+    }
+  };
+
+  if (!allowedTables[category]) {
+    return res.status(400).json({ message: 'Invalid comparison category' });
+  }
+
+  const config = allowedTables[category];
+
+  let sql = `SELECT ${config.fields} FROM ${config.table}`;
+  let params = [];
+
+  if (filter && config.filterColumn) {
+    sql += ` WHERE ${config.filterColumn} = ?`;
+    params.push(filter);
+  }
+
+  db.query(sql, params, (err, results) => {
+    if (err) {
+      console.error('❌ Comparison query error:', err);
+      return res.status(500).json({ message: 'Database error' });
+    }
+    res.json(results);
+  });
+});
+
 const PORT = 3001;
 app.listen(PORT, () => console.log(` Server running at http://localhost:${PORT}`));
