@@ -126,14 +126,65 @@ INSERT INTO `cases` (`id`, `name`, `price`, `image_url`, `product_url`, `dimensi
 -- Table structure for table `completed_builds`
 -- ----------------------------
 
+DROP TABLE IF EXISTS `completed_builds`;
 CREATE TABLE `completed_builds` (
-  `completed_id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `builds_id` int(11) NOT NULL,
+  `completed_id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `builds_id` int NOT NULL,
   `title` varchar(150) NOT NULL,
   `description` text DEFAULT NULL,
   `is_public` tinyint(1) DEFAULT 1,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`completed_id`),
+  INDEX `idx_completed_builds_user` (`user_id`),
+  INDEX `idx_completed_builds_public` (`is_public`),
+  INDEX `idx_completed_builds_created` (`created_at` DESC),
+  CONSTRAINT `fk_completed_builds_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_completed_builds_build` FOREIGN KEY (`builds_id`) REFERENCES `builds` (`builds_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- ----------------------------
+-- Table structure for table `build_comments`
+-- ----------------------------
+
+DROP TABLE IF EXISTS `build_comments`;
+CREATE TABLE `build_comments` (
+  `comment_id` int NOT NULL AUTO_INCREMENT,
+  `completed_build_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `parent_comment_id` int DEFAULT NULL,
+  `content` text NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`comment_id`),
+  INDEX `idx_build_comments_build` (`completed_build_id`),
+  INDEX `idx_build_comments_user` (`user_id`),
+  INDEX `idx_build_comments_parent` (`parent_comment_id`),
+  INDEX `idx_build_comments_created` (`created_at` DESC),
+  CONSTRAINT `fk_build_comments_build` FOREIGN KEY (`completed_build_id`) REFERENCES `completed_builds` (`completed_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_build_comments_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_build_comments_parent` FOREIGN KEY (`parent_comment_id`) REFERENCES `build_comments` (`comment_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- ----------------------------
+-- Table structure for table `build_ratings`
+-- ----------------------------
+
+DROP TABLE IF EXISTS `build_ratings`;
+CREATE TABLE `build_ratings` (
+  `rating_id` int NOT NULL AUTO_INCREMENT,
+  `completed_build_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `rating` tinyint NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`rating_id`),
+  UNIQUE KEY `uk_build_ratings_user_build` (`completed_build_id`, `user_id`),
+  INDEX `idx_build_ratings_build` (`completed_build_id`),
+  INDEX `idx_build_ratings_user` (`user_id`),
+  CONSTRAINT `fk_build_ratings_build` FOREIGN KEY (`completed_build_id`) REFERENCES `completed_builds` (`completed_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_build_ratings_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `chk_rating_range` CHECK (`rating` >= 1 AND `rating` <= 5)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------
@@ -586,6 +637,49 @@ CREATE TABLE `users`  (
 -- ----------------------------
 INSERT INTO `users` VALUES (3, 'huzir', 'huzir123@gmail.com', '$2b$10$TT10OuIpKMd1PIBxm8AHjO3B0ny8xT1XWZ42mlQUu8yMfU/CFNzce', 'user');
 INSERT INTO `users` VALUES (4, 'AdminUser', 'admin@example.com', '$2b$10$GJqA2NG/sUQ79xuvyzRRyu7kkstnU6RE/cbT/NzTu8uoNz0o55ZEe', 'admin');
+
+-- ----------------------------
+-- Seed Data for Completed Builds Feature
+-- ----------------------------
+
+-- Add more sample builds for testing completed builds feature
+INSERT INTO `builds` (`builds_name`, `builds_description`, `cpus_id`, `gpus_id`, `motherboards_id`, `rams_id`, `cpucoolers_id`, `storages_id`, `cases_id`, `psus_id`, `Users_id`) VALUES
+('Gaming Beast', 'High-end gaming build with RTX 5070 Ti', 1, 1, 1, 2, 1, 2, 1, 1, 3),
+('Budget Workstation', 'Affordable productivity setup', 6, 2, 2, 1, 2, 1, 4, 2, 4),
+('Ultimate Dream Build', 'No compromise enthusiast build', 3, 4, 3, 5, 3, 2, 2, 5, 3);
+
+-- Seed data for completed_builds (4 entries)
+INSERT INTO `completed_builds` (`user_id`, `builds_id`, `title`, `description`, `is_public`, `created_at`) VALUES
+(3, 2, 'My First Gaming PC', 'Finally completed my first gaming build! Super excited about the performance.', 1, '2024-01-15 10:30:00'),
+(3, 5, 'Gaming Beast Build', 'High-end gaming rig for 1440p gaming. Runs everything on ultra!', 1, '2024-02-20 14:45:00'),
+(4, 6, 'Office Workstation', 'Budget-friendly workstation for productivity tasks and light editing.', 1, '2024-03-10 09:15:00'),
+(3, 7, 'Dream Machine', 'My ultimate dream build - no compromises!', 1, '2024-03-25 16:00:00');
+
+-- Seed data for build_comments - Parent comments (top-level, no parent_comment_id)
+INSERT INTO `build_comments` (`completed_build_id`, `user_id`, `parent_comment_id`, `content`, `created_at`) VALUES
+(1, 4, NULL, 'Nice build! What kind of FPS are you getting in games?', '2024-01-16 11:00:00'),
+(2, 4, NULL, 'The RTX 5070 Ti is a beast! Great choice.', '2024-02-21 10:00:00'),
+(2, 4, NULL, 'How are the thermals with that cooler?', '2024-02-22 09:30:00'),
+(3, 3, NULL, 'Smart budget choices! Perfect for office work.', '2024-03-11 10:00:00'),
+(4, 4, NULL, 'Wow, that''s an incredible build! Total cost must be insane.', '2024-03-26 09:00:00');
+
+-- Seed data for build_comments - First level replies
+INSERT INTO `build_comments` (`completed_build_id`, `user_id`, `parent_comment_id`, `content`, `created_at`) VALUES
+(1, 3, 1, 'Thanks! Getting around 120fps in most AAA titles at 1080p.', '2024-01-16 12:30:00'),
+(2, 3, 3, 'Running around 65-70°C under load, pretty quiet too!', '2024-02-22 11:15:00'),
+(3, 4, 4, 'Thanks! Trying to keep costs down while staying productive.', '2024-03-11 11:30:00'),
+(4, 3, 5, 'Yeah it wasn''t cheap, but totally worth it for the performance!', '2024-03-26 10:30:00');
+
+-- Seed data for build_comments - Second level replies (nested)
+INSERT INTO `build_comments` (`completed_build_id`, `user_id`, `parent_comment_id`, `content`, `created_at`) VALUES
+(1, 4, 6, 'That''s impressive for a first build! Well done.', '2024-01-16 14:00:00');
+
+-- Seed data for build_ratings (4 entries)
+INSERT INTO `build_ratings` (`completed_build_id`, `user_id`, `rating`, `created_at`) VALUES
+(1, 4, 4, '2024-01-16 11:05:00'),
+(2, 4, 5, '2024-02-21 10:05:00'),
+(3, 3, 4, '2024-03-11 10:05:00'),
+(4, 4, 5, '2024-03-26 09:05:00');
 
 SET FOREIGN_KEY_CHECKS = 1;
 
