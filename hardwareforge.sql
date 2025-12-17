@@ -202,7 +202,7 @@ CREATE TABLE `cpucoolers`  (
   `color` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `height_mm` int NULL DEFAULT NULL,
   `heatpipes` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `wattage` int NULL DEFAULT 0,
+  `tdp` int NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_cpucoolers_color`(`color` ASC) USING BTREE,
   INDEX `idx_cpucoolers_height`(`height_mm` ASC) USING BTREE
@@ -211,7 +211,7 @@ CREATE TABLE `cpucoolers`  (
 -- ----------------------------
 -- Records of cpucoolers
 -- ----------------------------
-INSERT INTO `cpucoolers` (`id`, `name`, `price`, `image_url`, `product_url`, `liquid_cooling`, `dimension`, `color`, `height_mm`, `heatpipes`, `wattage`) VALUES
+INSERT INTO `cpucoolers` (`id`, `name`, `price`, `image_url`, `product_url`, `liquid_cooling`, `dimension`, `color`, `height_mm`, `heatpipes`, `tdp`) VALUES
 (1, 'Noctua NH-U12S Redux', 239.00, '', '', 0, '158mm (H) x 125mm (W) x 71mm (D)', 'Black', 158, '4 heatpipes', 180),
 (2, 'DeepCool AK400 Performance', 139.00, '', '', 0, '155mm (H) x 127mm (W) x 97mm (D)', 'Black', 155, '4 heatpipes', 180),
 (3, 'be quiet! Dark Rock 4', 329.00, '', '', 0, '159mm (H) x 136mm (W) x 96mm (D)', 'Black', 159, '6 heatpipes', 200),
@@ -825,7 +825,7 @@ INSERT INTO cases (name, price, form_factor, side_panel, color, gpu_length_max_m
 ('Fractal Design Define 7 Compact', 549.00, 'ATX Mid Tower', 'Solid Panel', 'Black', 315, 169, '440 x 224 x 448 mm', NULL);
 
 -- Additional CPU Coolers (20 records)
-INSERT INTO cpucoolers (name, price, liquid_cooling, dimension, color, height_mm, heatpipes, wattage, image_url) VALUES
+INSERT INTO cpucoolers (name, price, liquid_cooling, dimension, color, height_mm, heatpipes, tdp, image_url) VALUES
 ('Noctua NH-D15', 599.00, 0, '161mm (H) x 150mm (W) x 135mm (D)', 'Black/Brown', 161, '6 heatpipes', 250, NULL),
 ('be quiet! Dark Rock Pro 4', 399.00, 0, '163mm (H) x 139mm (W) x 111mm (D)', 'Black', 163, '7 heatpipes', 250, NULL),
 ('Corsair H150i Elite Capellix', 799.00, 1, '397mm (L) x 120mm (W) x 27mm (H)', 'RGB', 397, 'Pump-based', 280, NULL),

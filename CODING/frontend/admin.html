@@ -35,6 +35,10 @@
   <li class="nav-item" role="presentation">
     <button class="nav-link" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button">Products</button>
   </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="analysis-tab" data-bs-toggle="tab" data-bs-target="#analysis" type="button">Analysis</button>
+  </li>
+
 </ul>
 
 <div class="tab-content">
@@ -90,11 +94,25 @@
         <tbody></tbody>
     </table>
     </div>
+    <div class="tab-pane fade" id="analysis">
+      <h4>Most Popular Components</h4>
+      <table class="table table-striped" id="analysisTable">
+        <thead>
+          <tr>
+            <th>Component</th>
+            <th>Most Picked</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
 </div>
 
 <script src="public/js/bootstrap.bundle.min.js"></script>
 <script>
 const token = localStorage.getItem('token'); // Admin JWT token
+document.getElementById('analysis-tab').addEventListener('click', loadAnalysis);
 
 // --- USERS ---
 function loadUsers(){
@@ -215,6 +233,34 @@ document.getElementById('productType').addEventListener('change', loadProducts);
 loadUsers();
 loadThreads();
 loadProducts();
+
+function loadAnalysis() {
+  fetch('/api/admin/analysis', {
+    headers: { Authorization: 'Bearer ' + token }
+  })
+  .then(res => {
+    if (!res.ok) throw new Error('Failed to load analysis');
+    return res.json();
+  })
+  .then(data => {
+    const tbody = document.querySelector('#analysisTable tbody');
+    tbody.innerHTML = '';
+
+    for (const [component, info] of Object.entries(data)) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${component.toUpperCase()}</td>
+        <td>${info.name}</td>
+        <td>${info.total}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    alert('Analysis data failed to load');
+  });
+}
 
 // --- LOGOUT ---
 document.getElementById('logoutBtn').addEventListener('click', () => {

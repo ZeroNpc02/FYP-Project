@@ -528,6 +528,48 @@ app.put('/api/admin/products/:table/:id', authenticateAdmin, (req, res) => {
   });
 });
 
+app.get('/api/admin/analysis', authenticateAdmin, (req, res) => {
+  const tables = {
+    cpu: { column: 'cpus_id', table: 'cpus' },
+    gpu: { column: 'gpus_id', table: 'gpus' },
+    motherboard: { column: 'motherboards_id', table: 'motherboards' },
+    ram: { column: 'rams_id', table: 'rams' },
+    cpucooler: { column: 'cpucoolers_id', table: 'cpucoolers' },
+    storage: { column: 'storages_id', table: 'storages' },
+    case_component: { column: 'cases_id', table: 'cases' },
+    psu: { column: 'psus_id', table: 'psus' }
+  };
+
+  const analysis = {};
+  let processed = 0;
+  const totalComponents = Object.keys(tables).length;
+
+  for (const [component, config] of Object.entries(tables)) {
+    const sql = `
+      SELECT b.${config.column} AS id, p.name, COUNT(*) AS total
+      FROM builds b
+      LEFT JOIN ${config.table} p ON b.${config.column} = p.id
+      GROUP BY b.${config.column}, p.name
+      ORDER BY total DESC
+      LIMIT 1
+    `;
+
+    db.query(sql, (err, results) => {
+      processed++;
+
+      if (err) {
+        console.error(`[ANALYSIS] Error fetching ${component}:`, err);
+        analysis[component] = { id: null, name: 'N/A', total: 0 };
+      } else {
+        analysis[component] = results[0] || { id: null, name: 'N/A', total: 0 };
+      }
+
+      if (processed === totalComponents) {
+        res.json(analysis);
+      }
+    });
+  }
+});
 
 
 // save build

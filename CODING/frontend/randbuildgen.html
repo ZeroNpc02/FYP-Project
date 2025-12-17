@@ -43,6 +43,9 @@
             <option value="Intel">Intel</option>
             <option value="AMD">AMD</option>
           </select>
+          <div id="cpuBrandInfo" class="form-text text-muted mt-2" style="display: none;">
+            <small></small>
+          </div>
         </div>
 
         <div class="mb-3">
@@ -52,6 +55,9 @@
             <option value="NVIDIA">NVIDIA</option>
             <option value="AMD">AMD</option>
           </select>
+          <div id="gpuBrandInfo" class="form-text text-muted mt-2" style="display: none;">
+            <small></small>
+          </div>
         </div>
 
         <button id="generateBtn" class="btn btn-primary w-100">Generate Random Build</button>
@@ -112,9 +118,34 @@ function getPcTypeRecommendations(pcType) {
     return recommendations[pcType] || {};
 }
 
-function getRandomItem(array) {
-    if (!array || array.length === 0) return null;
-    return array[Math.floor(Math.random() * array.length)];
+function getCpuBrandRecommendations(cpuBrand) {
+  const recommendations = {
+    AMD: {
+      description: "Great for gaming due to high multi-core performance and efficiency."
+    },
+    Intel: {
+      description: "Excels in single-core speed and high-end productivity tasks."
+    },
+    any: {
+      description: ""
+    }
+  };
+  return recommendations[cpuBrand] || { description: "" };
+}
+
+function getGpuBrandRecommendations(gpuBrand) {
+  const recommendations = {
+    NVIDIA: {
+      description: "Strong in ray tracing and AI-based workloads, ideal for gaming and rendering."
+    },
+    AMD: {
+      description: "Go-to choice for budget builds, Offers competitive performance per dollar and high VRAM options."
+    },
+    any: {
+      description: ""
+    }
+  };
+  return recommendations[gpuBrand] || { description: "" };
 }
 
 // Update PC type info when selection changes
@@ -141,6 +172,32 @@ document.getElementById('pcType').addEventListener('change', (e) => {
         budgetSuggestion.querySelector('small').textContent = '';
         budgetInput.placeholder = 'Enter your budget';
     }
+});
+
+document.getElementById('cpuBrand').addEventListener('change', (e) => {
+  const cpuBrand = e.target.value;
+  const infoDiv = document.getElementById('cpuBrandInfo');
+
+  if (cpuBrand && cpuBrand !== 'any') {
+    const info = getCpuBrandRecommendations(cpuBrand);
+    infoDiv.querySelector('small').innerHTML = `<strong>${info.description}</strong>`;
+    infoDiv.style.display = 'block';
+  } else {
+    infoDiv.style.display = 'none';
+  }
+});
+
+document.getElementById('gpuBrand').addEventListener('change', (e) => {
+  const gpuBrand = e.target.value;
+  const infoDiv = document.getElementById('gpuBrandInfo');
+
+  if (gpuBrand && gpuBrand !== 'any') {
+    const info = getGpuBrandRecommendations(gpuBrand);
+    infoDiv.querySelector('small').innerHTML = `<strong>${info.description}</strong>`;
+    infoDiv.style.display = 'block';
+  } else {
+    infoDiv.style.display = 'none';
+  }
 });
 
 document.getElementById('generateBtn').addEventListener('click', async () => {
