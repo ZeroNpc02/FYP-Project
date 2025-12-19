@@ -536,40 +536,42 @@ app.get('/api/admin/analysis', authenticateAdmin, (req, res) => {
     ram: { column: 'rams_id', table: 'rams' },
     cpucooler: { column: 'cpucoolers_id', table: 'cpucoolers' },
     storage: { column: 'storages_id', table: 'storages' },
-    case_component: { column: 'cases_id', table: 'cases' },
+    case: { column: 'cases_id', table: 'cases' }, // Changed key to 'case'
     psu: { column: 'psus_id', table: 'psus' }
   };
 
   const analysis = {};
   let processed = 0;
-  const totalComponents = Object.keys(tables).length;
+  const keys = Object.keys(tables);
 
-  for (const [component, config] of Object.entries(tables)) {
+  keys.forEach((component) => {
+    const config = tables[component];
     const sql = `
-      SELECT b.${config.column} AS id, p.name, COUNT(*) AS total
+      SELECT 
+        p.name AS name, 
+        COUNT(b.builds_id) AS total
       FROM builds b
-      LEFT JOIN ${config.table} p ON b.${config.column} = p.id
-      GROUP BY b.${config.column}, p.name
+      INNER JOIN ${config.table} p ON b.${config.column} = p.id
+      GROUP BY p.id, p.name
       ORDER BY total DESC
-      LIMIT 1
     `;
 
     db.query(sql, (err, results) => {
       processed++;
-
       if (err) {
-        console.error(`[ANALYSIS] Error fetching ${component}:`, err);
-        analysis[component] = { id: null, name: 'N/A', total: 0 };
+        console.error(`Error in ${component}:`, err);
+        analysis[component] = [];
       } else {
-        analysis[component] = results[0] || { id: null, name: 'N/A', total: 0 };
+        analysis[component] = results;
       }
 
-      if (processed === totalComponents) {
+      if (processed === keys.length) {
         res.json(analysis);
       }
     });
-  }
+  });
 });
+
 
 
 // save build

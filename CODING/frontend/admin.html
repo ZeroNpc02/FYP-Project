@@ -5,12 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Panel - HardwareForge</title>
   <link rel="stylesheet" href="public/css/bootstrap.min.css">
-  <style>
-    body { padding: 20px; }
-    .tab-content { margin-top: 20px; }
-    table { width: 100%; margin-bottom: 20px; }
-    th, td { text-align: left; }
-  </style>
+  <link rel="stylesheet" href="public/css/admin.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -42,75 +38,88 @@
 </ul>
 
 <div class="tab-content">
-    <!-- Users Tab -->
-    <div class="tab-pane fade show active" id="users">
-        <table class="table table-striped" id="usersTable">
-        <thead>
-            <tr>
-            <th>Username</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-        </table>
-    </div>
-
-    <!-- Threads Tab -->
-    <div class="tab-pane fade" id="threads">
-    <table class="table table-striped" id="threadsTable">
-        <thead>
-        <tr>
-            <th>Title</th>
-            <th>User</th>
-            <th>Created At</th>
-            <th>Actions</th>
-        </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-    </div>
-
-    <div class="tab-pane fade" id="products">
-    <select id="productType" class="form-select mb-2">
-        <option value="cpus">CPUs</option>
-        <option value="gpus">GPUs</option>
-        <option value="motherboards">Motherboards</option>
-        <option value="rams">RAMs</option>
-        <option value="psus">PSUs</option>
-        <option value="cases">Cases</option>
-        <option value="cpucoolers">CPU Coolers</option>
-        <option value="storages">Storages</option>
-    </select>
-    <table class="table table-striped" id="productsTable">
-        <thead>
-        <tr>
-            <th>Name</th>
-            <th>Price</th>
-            <th>Actions</th>
-        </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-    </div>
-    <div class="tab-pane fade" id="analysis">
-      <h4>Most Popular Components</h4>
-      <table class="table table-striped" id="analysisTable">
-        <thead>
+  <!-- Users Tab -->
+  <div class="tab-pane fade show active" id="users">
+      <table class="table table-striped" id="usersTable">
+      <thead>
           <tr>
-            <th>Component</th>
-            <th>Most Picked</th>
-            <th>Count</th>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Actions</th>
           </tr>
-        </thead>
-        <tbody></tbody>
+      </thead>
+      <tbody></tbody>
       </table>
+  </div>
+
+  <!-- Threads Tab -->
+  <div class="tab-pane fade" id="threads">
+  <table class="table table-striped" id="threadsTable">
+      <thead>
+      <tr>
+          <th>Title</th>
+          <th>User</th>
+          <th>Created At</th>
+          <th>Actions</th>
+      </tr>
+      </thead>
+      <tbody></tbody>
+  </table>
+  </div>
+
+  <div class="tab-pane fade" id="products">
+  <select id="productType" class="form-select mb-2">
+      <option value="cpus">CPUs</option>
+      <option value="gpus">GPUs</option>
+      <option value="motherboards">Motherboards</option>
+      <option value="rams">RAMs</option>
+      <option value="psus">PSUs</option>
+      <option value="cases">Cases</option>
+      <option value="cpucoolers">CPU Coolers</option>
+      <option value="storages">Storages</option>
+  </select>
+  <table class="table table-striped" id="productsTable">
+      <thead>
+      <tr>
+          <th>Name</th>
+          <th>Price</th>
+          <th>Actions</th>
+      </tr>
+      </thead>
+      <tbody></tbody>
+  </table>
+  </div>
+  <div class="tab-pane fade" id="analysis">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4>Component Popularity Analysis</h4>
+      <button class="btn btn-outline-secondary btn-sm" onclick="loadAnalysis()">Refresh Data</button>
     </div>
+
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body">
+        <h6 class="card-title text-muted">Most Popular per Category</h6>
+        <table class="table table-hover align-middle" id="analysisTable">
+          <thead class="table-light">
+            <tr>
+              <th>Category</th>
+              <th>Top Product</th>
+              <th>Usage Count</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="analysisCharts" class="row">
+      </div>
+  </div>
 </div>
 
 <script src="public/js/bootstrap.bundle.min.js"></script>
 <script>
+let analysisCharts = []; // Global array to keep track of chart instances
 const token = localStorage.getItem('token'); // Admin JWT token
 document.getElementById('analysis-tab').addEventListener('click', loadAnalysis);
 
@@ -235,6 +244,8 @@ loadThreads();
 loadProducts();
 
 function loadAnalysis() {
+  const token = localStorage.getItem('token');
+  
   fetch('/api/admin/analysis', {
     headers: { Authorization: 'Bearer ' + token }
   })
@@ -244,21 +255,115 @@ function loadAnalysis() {
   })
   .then(data => {
     const tbody = document.querySelector('#analysisTable tbody');
+    const chartsDiv = document.getElementById('analysisCharts');
+
+    // 1. Clear old charts properly to prevent memory leaks
+    analysisCharts.forEach(chart => chart.destroy());
+    analysisCharts = [];
+    
     tbody.innerHTML = '';
+    chartsDiv.innerHTML = '';
+
+    // Define some colors for variety
+    const colors = [
+      'rgba(54, 162, 235, 0.7)',  // Blue
+      'rgba(255, 99, 132, 0.7)',  // Red
+      'rgba(75, 192, 192, 0.7)',  // Teal
+      'rgba(255, 206, 86, 0.7)',  // Yellow
+      'rgba(153, 102, 255, 0.7)', // Purple
+      'rgba(255, 159, 64, 0.7)'   // Orange
+    ];
+
+    let colorIdx = 0;
 
     for (const [component, info] of Object.entries(data)) {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${component.toUpperCase()}</td>
-        <td>${info.name}</td>
-        <td>${info.total}</td>
-      `;
-      tbody.appendChild(tr);
+      const categoryName = component.replace('_component', '').toUpperCase();
+      
+      // 2. Update Table
+      if (info.length > 0) {
+        const top = info[0];
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="fw-bold">${categoryName}</td>
+          <td>${top.name}</td>
+          <td><span class="badge bg-primary rounded-pill">${top.total} picks</span></td>
+        `;
+        tbody.appendChild(tr);
+      } else {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${categoryName}</td><td>No data yet</td><td>0</td>`;
+        tbody.appendChild(tr);
+        continue;
+      }
+
+      // 3. Create Chart Card
+      const col = document.createElement('div');
+      col.classList.add('col-md-6', 'mb-4');
+      
+      const card = document.createElement('div');
+      card.classList.add('card', 'h-100', 'shadow-sm');
+      
+      const cardBody = document.createElement('div');
+      cardBody.classList.add('card-body');
+      
+      const title = document.createElement('h6');
+      title.classList.add('card-title', 'border-bottom', 'pb-2', 'mb-3');
+      title.textContent = `${categoryName} Distribution`;
+      
+      const canvas = document.createElement('canvas');
+      canvas.style.maxHeight = '250px';
+
+      cardBody.appendChild(title);
+      cardBody.appendChild(canvas);
+      card.appendChild(cardBody);
+      col.appendChild(card);
+      chartsDiv.appendChild(col);
+
+      // 4. Initialize Chart.js
+      const chart = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels: info.map(i => i.name.length > 20 ? i.name.substring(0, 17) + '...' : i.name),
+          datasets: [{
+            label: 'Total Picks',
+            data: info.map(i => i.total),
+            backgroundColor: colors[colorIdx % colors.length],
+            borderColor: colors[colorIdx % colors.length].replace('0.7', '1'),
+            borderWidth: 1
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    // Show full name on hover if it was truncated
+                    label: (context) => ` ${info[context.dataIndex].name}: ${context.raw} picks`
+                }
+            }
+          },
+          scales: {
+            x: { 
+              beginAtZero: true, 
+              ticks: { precision: 0 },
+              grid: { display: false }
+            },
+            y: {
+              grid: { display: false }
+            }
+          }
+        }
+      });
+
+      analysisCharts.push(chart);
+      colorIdx++;
     }
   })
   .catch(err => {
-    console.error(err);
-    alert('Analysis data failed to load');
+    console.error('Analysis error:', err);
   });
 }
 
