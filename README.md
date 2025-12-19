@@ -88,9 +88,9 @@ Each build links components via foreign keys, allowing flexible and scalable bui
 ## 📦 Installation & Setup
 ### 1️⃣ Clone the Repository
 
-git clone https://github.com/your-username/hardwareforge.git
-cd hardwareforge
-
+git clone https://github.com/ZeroNpc02/FYP-Project.git
+cd coding
+cd backend
 
 ### 2️⃣ Install Dependencies
 
