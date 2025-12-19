@@ -3,147 +3,233 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Completed Builds</title>
+  <title>Completed Builds - HardwareForge</title>
 
   <link rel="stylesheet" href="public/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="public/css/completedbuilds.css" />
+  <link rel="stylesheet" href="public/css/test.css" />
   <link rel="stylesheet" href="public/css/dropdown.css" />
   <link rel="stylesheet" href="public/css/sidebar.css" />
   <script src="public/js/security.js" defer></script>
 </head>
 
-<body>
+<body class="dark">
   <div class="app-grid">
     <div id="sidebar-container"></div>
     <div id="dropdown-container"></div>
 
     <main class="content">
       <div class="container-fluid py-4">
-        <div class="row">
-          <!-- Sidebar Filters -->
-          <aside class="col-md-3 col-lg-2 mb-4">
-            <div class="card bg-dark text-white p-3 shadow-sm sticky-top" style="top: 80px;">
-              <h5 class="mb-3">Filters</h5>
-
-              <div class="mb-3">
-                <label class="form-label">Price</label>
-                <input type="range" class="form-range" min="0" max="25000" id="priceRange">
-                <div class="d-flex justify-content-between">
-                  <small>RM0</small><small>RM25,000</small>
-                </div>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">Published</label>
-                <select class="form-select form-select-sm bg-secondary text-white" id="publishedFilter">
-                  <option value="all">All</option>
-                  <option value="yes">Yes</option>
-                  <option value="no">No</option>
-                </select>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">CPU Cooler Type</label>
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="coolerAll" checked> <label class="form-check-label">All</label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="coolerAir"> <label class="form-check-label">Air Cooler</label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="coolerLiquid"> <label class="form-check-label">Liquid Cooler</label>
-                </div>
-              </div>
-            </div>
-          </aside>
-
-          <!-- Builds Grid -->
-          <section class="col-md-9 col-lg-10">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h2 class="mb-0">Completed Builds</h2>
-
-              <div class="d-flex gap-2">
-                <select id="sortSelect" class="form-select form-select-sm bg-secondary text-white" style="width: 160px;">
-                  <option value="date">Date Posted (Newest)</option>
-                  <option value="price_asc">Price (Lowest)</option>
-                  <option value="price_desc">Price (Highest)</option>
-                </select>
-                <input type="text" id="searchBuilds" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Search Builds">
-              </div>
-            </div>
-
-            <div class="d-flex flex-column flex-md-row gap-2 mb-3">
-              <button id="addBuildBtn" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> Add New Build
-              </button>
-              <div class="d-flex gap-2">
-                <button id="sortByDate" class="btn btn-outline-secondary btn-sm">Latest</button>
-                <button id="sortByRating" class="btn btn-outline-secondary btn-sm">Top Rated</button>
-                <button id="sortByComments" class="btn btn-outline-secondary btn-sm">Most Discussed</button>
-              </div>
-            </div>
-
-            <!-- Build cards grid -->
-            <div id="build-list" class="row g-4">
-              <!-- Cards will be appended here -->
-            </div>
-          </section>
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h1 class="mb-1">Completed Builds</h1>
+            <p class="text-muted mb-0">Browse community PC builds and share your own</p>
+          </div>
+          <button id="submitBuildBtn" class="btn btn-primary d-none">
+            <i class="bi bi-plus-circle me-2"></i>Submit Your Build
+          </button>
         </div>
+
+        <!-- Sort and Search Controls -->
+        <div class="d-flex flex-wrap gap-2 mb-4">
+          <select id="sortSelect" class="form-select form-select-sm" style="width: 180px;">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="rating">Highest Rated</option>
+            <option value="price_low">Price: Low to High</option>
+            <option value="price_high">Price: High to Low</option>
+          </select>
+          <input type="text" id="searchBuilds" class="form-control form-control-sm" placeholder="Search builds..." style="max-width: 300px;">
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-2 text-muted">Loading completed builds...</p>
+        </div>
+
+        <!-- Build Cards Grid -->
+        <div id="buildsGrid" class="row g-4 d-none">
+          <!-- Cards will be rendered here -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="text-center py-5 d-none">
+          <div class="mb-3">
+            <svg width="64" height="64" fill="currentColor" class="text-muted" viewBox="0 0 16 16">
+              <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zM2.5 2a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zm6.5.5A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zM1 10.5A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3zm6.5.5A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3zm1.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5h-3z"/>
+            </svg>
+          </div>
+          <h4>No Builds Found</h4>
+          <p class="text-muted">Be the first to share your build with the community!</p>
+        </div>
+
+        <!-- Pagination -->
+        <nav id="paginationContainer" class="d-none mt-4">
+          <ul class="pagination justify-content-center" id="pagination">
+            <!-- Pagination items will be rendered here -->
+          </ul>
+        </nav>
       </div>
     </main>
   </div>
 
-  <!-- Rating Modal (unchanged) -->
-  <div class="modal fade" id="ratingModal" tabindex="-1">
-    <div class="modal-dialog">
+  <!-- Submit Build Modal -->
+  <div class="modal fade" id="submitBuildModal" tabindex="-1" aria-labelledby="submitBuildModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Rate This Build</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          <h5 class="modal-title" id="submitBuildModalLabel">Submit Your Build</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p>How would you rate this build?</p>
-          <div class="rating-input mb-3">
-            <div id="starRating" class="d-flex gap-2" style="font-size: 2rem;">
-              <span class="star" data-rating="1">⭐</span>
-              <span class="star" data-rating="2">⭐</span>
-              <span class="star" data-rating="3">⭐</span>
-              <span class="star" data-rating="4">⭐</span>
-              <span class="star" data-rating="5">⭐</span>
+          <div id="submitBuildError" class="alert alert-danger d-none"></div>
+          
+          <div class="mb-3">
+            <label for="savedBuildSelect" class="form-label">Select a Saved Build <span class="text-danger">*</span></label>
+            <select id="savedBuildSelect" class="form-select">
+              <option value="">-- Loading your saved builds --</option>
+            </select>
+            <div class="form-text">Choose from your previously saved builds to share with the community.</div>
+          </div>
+
+          <!-- Build Preview -->
+          <div id="buildPreview" class="card mb-3 d-none">
+            <div class="card-body">
+              <h6 class="card-title mb-2">Build Preview</h6>
+              <div class="d-flex gap-3 align-items-center">
+                <div>
+                  <div id="previewBuildName" class="fw-bold"></div>
+                  <div id="previewBuildSpecs" class="small text-muted"></div>
+                  <div id="previewBuildPrice" class="fw-bold text-success"></div>
+                </div>
+              </div>
             </div>
           </div>
+
           <div class="mb-3">
-            <label for="ratingComment" class="form-label">Optional Comment</label>
-            <textarea class="form-control" id="ratingComment" rows="3" placeholder="Share your thoughts about this build..."></textarea>
+            <label for="buildTitle" class="form-label">Build Title <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="buildTitle" placeholder="e.g., My Gaming Beast, Budget Workstation" maxlength="100">
+          </div>
+
+          <div class="mb-3">
+            <label for="buildDescription" class="form-label">Description (Optional)</label>
+            <textarea class="form-control" id="buildDescription" rows="4" placeholder="Share details about your build - what it's used for, build experience, tips for others..." maxlength="2000"></textarea>
+            <div class="form-text"><span id="descCharCount">0</span>/2000 characters</div>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary" id="submitRatingBtn">Submit Rating</button>
+          <button type="button" class="btn btn-primary" id="submitBuildConfirmBtn">
+            <span id="submitBuildSpinner" class="spinner-border spinner-border-sm me-2 d-none"></span>
+            Submit Build
+          </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Comments Modal (unchanged) -->
-  <div class="modal fade" id="commentsModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+  <!-- Build Detail Modal -->
+  <div class="modal fade" id="buildDetailModal" tabindex="-1" aria-labelledby="buildDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Build Comments</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          <h5 class="modal-title" id="buildDetailModalLabel">Build Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <!-- Add Comment Form -->
-          <div class="add-comment mb-4">
-            <h6>Add a Comment</h6>
-            <textarea class="form-control mb-2" id="newComment" rows="2" placeholder="Share your thoughts..."></textarea>
-            <button class="btn btn-primary btn-sm" id="submitCommentBtn">Post Comment</button>
+          <!-- Build Header -->
+          <div class="d-flex justify-content-between align-items-start mb-4">
+            <div>
+              <h3 id="detailBuildTitle" class="mb-1"></h3>
+              <div class="text-muted">
+                by <span id="detailBuildUser" class="text-primary"></span> •
+                <span id="detailBuildDate"></span>
+              </div>
+            </div>
+            <div class="text-end">
+              <div id="detailBuildPrice" class="h4 text-success mb-1"></div>
+              <div id="detailBuildRating" class="star-rating"></div>
+              <small id="detailRatingCount" class="text-muted"></small>
+            </div>
           </div>
 
-          <!-- Comments List -->
-          <div id="commentsList">
-            <!-- Comments will be loaded here -->
+          <!-- Build Description -->
+          <div id="detailBuildDescription" class="detail-description mb-4 p-3 rounded d-none"></div>
+
+          <!-- Component Table -->
+          <div class="table-responsive mb-4">
+            <table class="table table-striped table-hover">
+              <thead class="table-light">
+                <tr>
+                  <th>Component</th>
+                  <th>Name</th>
+                  <th class="text-end">Price</th>
+                </tr>
+              </thead>
+              <tbody id="componentTableBody">
+                <!-- Components will be rendered here -->
+              </tbody>
+              <tfoot>
+                <tr class="table-primary">
+                  <th colspan="2">Total</th>
+                  <th class="text-end" id="componentTotalPrice"></th>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <!-- User Rating Section -->
+          <div id="userRatingSection" class="card bg-light mb-4 d-none">
+            <div class="card-body">
+              <h6 class="card-title mb-3">Rate This Build</h6>
+              <div id="userRatingDisplay" class="d-none mb-2">
+                <span class="text-muted">You rated: </span>
+                <span id="userRatingStars" class="star-rating"></span>
+              </div>
+              <div id="userRatingInput" class="mb-2">
+                <div class="star-rating interactive" id="ratingStarsInput">
+                  <span class="star" data-rating="1">★</span>
+                  <span class="star" data-rating="2">★</span>
+                  <span class="star" data-rating="3">★</span>
+                  <span class="star" data-rating="4">★</span>
+                  <span class="star" data-rating="5">★</span>
+                </div>
+                <small class="text-muted ms-2">Click to rate</small>
+              </div>
+              <div id="ratingMessage" class="small text-success d-none"></div>
+            </div>
+          </div>
+
+          <!-- Comments Section -->
+          <div class="card comments-card">
+            <div class="card-body">
+              <h6 class="card-title mb-3">
+                Comments <span id="commentCount" class="badge bg-primary ms-2">0</span>
+              </h6>
+
+              <!-- Add Comment Form -->
+              <div id="addCommentSection" class="mb-4 d-none">
+                <textarea id="commentText" class="form-control mb-2" rows="3" placeholder="Share your thoughts about this build..."></textarea>
+                <button id="submitCommentBtn" class="btn btn-primary btn-sm">
+                  <span id="commentSpinner" class="spinner-border spinner-border-sm me-1 d-none"></span>
+                  Post Comment
+                </button>
+              </div>
+              <div id="loginToCommentMsg" class="alert alert-info mb-4 d-none">
+                <a href="login.html" class="alert-link">Login</a> to leave a comment.
+              </div>
+
+              <!-- Comments List -->
+              <div id="commentsList">
+                <!-- Comments will be rendered here -->
+              </div>
+              <div id="noCommentsMsg" class="text-center text-muted py-3">
+                No comments yet. Be the first to share your thoughts!
+              </div>
+            </div>
           </div>
         </div>
         <div class="modal-footer">
@@ -153,74 +239,66 @@
     </div>
   </div>
 
-  <!-- Add Build Modal (Option A) -->
-  <div class="modal fade" id="addBuildModal" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Share Your Build (From Saved Builds)</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-
-        <div class="modal-body">
-          <div id="add-build-error" class="alert alert-danger d-none"></div>
-
-          <div class="mb-3">
-            <label for="savedBuildSelect" class="form-label">Select a saved build *</label>
-            <select id="savedBuildSelect" class="form-select">
-              <option value="">-- Loading saved builds --</option>
-            </select>
-            <div class="form-text">These are builds you saved earlier in your PC builder — select one to publish here.</div>
-          </div>
-
-          <div id="savedBuildPreview" class="mb-3 d-none">
-            <div class="d-flex gap-3 align-items-center">
-              <img id="previewImage" src="public/images/default-build.jpg" alt="preview" style="width:96px;height:64px;object-fit:cover;border-radius:4px;">
-              <div>
-                <div id="previewName" class="fw-bold"></div>
-                <div id="previewSpecs" class="small text-muted"></div>
-                <div id="previewPrice" class="fw-bold text-success"></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="mb-3">
-            <label for="newBuildName" class="form-label">Build Name *</label>
-            <input type="text" class="form-control" id="newBuildName" placeholder="Title that will be visible to others" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="newBuildDescription" class="form-label">Description</label>
-            <textarea class="form-control" id="newBuildDescription" rows="4" placeholder="Tell us about your build, what makes it special, or any tips..."></textarea>
-          </div>
-
-          <div class="form-check mb-3">
-            <input class="form-check-input" type="checkbox" id="makePublic" checked>
-            <label class="form-check-label" for="makePublic">
-              Make this build public (visible to everyone)
-            </label>
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary" id="submitNewBuildBtn">Share Build</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <script src="public/js/bootstrap.bundle.min.js"></script>
   <script src="public/js/common.js"></script>
 
   <script>
-    /*******************************
-     * Helper utilities & globals
-     *******************************/
-    let currentBuildId = null; // for comments/ratings
-    let userRating = 0;
+    // ============================================
+    // Configuration
+    // ============================================
+    const ITEMS_PER_PAGE = 12;
+    const API_BASE = '/api';
+    
+    // ============================================
+    // State
+    // ============================================
+    let allBuilds = [];
+    let filteredBuilds = [];
+    let currentPage = 1;
+    let currentBuildId = null;
+    let userSavedBuilds = [];
+    let selectedRating = 0;
 
-    // Helper: format date
+    // ============================================
+    // Authentication Helpers
+    // ============================================
+    function isLoggedIn() {
+      return !!localStorage.getItem('token');
+    }
+
+    function getToken() {
+      return localStorage.getItem('token');
+    }
+
+    function getCurrentUserId() {
+      try {
+        const token = getToken();
+        if (!token) return null;
+        const payload = token.split('.')[1];
+        if (!payload) return null;
+        const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+        return decoded.id || decoded.userId || decoded.user_id || null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function getCurrentUsername() {
+      try {
+        const token = getToken();
+        if (!token) return null;
+        const payload = token.split('.')[1];
+        if (!payload) return null;
+        const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+        return decoded.Username || decoded.username || decoded.name || decoded.email || null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // ============================================
+    // Utility Functions
+    // ============================================
     function formatDate(dateString) {
       if (!dateString) return 'Unknown';
       const date = new Date(dateString);
@@ -231,561 +309,808 @@
       });
     }
 
-    // Helper: generate stars HTML (string)
-    function generateStars(rating) {
-      let stars = '';
+    function formatPrice(price) {
+      const num = parseFloat(price) || 0;
+      return `RM ${num.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // ============================================
+    // Star Rating Functions
+    // ============================================
+    function renderStarRating(rating, interactive = false) {
+      const fullStars = Math.floor(rating);
+      const hasHalf = rating - fullStars >= 0.5;
+      let html = '';
+      
       for (let i = 1; i <= 5; i++) {
-        if (i <= Math.floor(rating)) {
-          stars += '<span class="text-warning">⭐</span>';
-        } else if (i - 0.5 <= rating) {
-          stars += '<span class="text-warning">⭐</span>';
+        if (i <= fullStars) {
+          html += '<span class="star filled">★</span>';
+        } else if (i === fullStars + 1 && hasHalf) {
+          html += '<span class="star half">★</span>';
         } else {
-          stars += '<span class="text-muted">⭐</span>';
+          html += '<span class="star empty">★</span>';
         }
       }
-      return stars;
+      
+      return html;
     }
 
-    // Helper: create a build card node
-    function renderBuildCard(b) {
-      const col = document.createElement('div');
-      col.className = 'col-sm-6 col-md-4 col-lg-3';
-
-      const card = document.createElement('div');
-      card.className = 'card build-card shadow-sm h-100';
-      card.dataset.buildId = b.builds_id || b.build_id || b.id || '';
-
-      // image area
-      const ratio = document.createElement('div');
-      ratio.className = 'ratio ratio-16x9';
-      const img = document.createElement('img');
-      img.src = b.image_url || b.image || (b.cpu && b.cpu.image_url) || 'public/images/default-build.jpg';
-      img.className = 'card-img-top rounded-top';
-      img.alt = b.builds_name || b.build_name || b.name || 'Build';
-      ratio.appendChild(img);
-
-      // body
-      const body = document.createElement('div');
-      body.className = 'card-body';
-
-      // header
-      const header = document.createElement('div');
-      header.className = 'd-flex align-items-center mb-2';
-      const avatar = document.createElement('div');
-      avatar.className = 'user-avatar me-2';
-      avatar.style = "width:32px;height:32px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold";
-      avatar.textContent = (b.user_name || b.user || 'U').charAt(0).toUpperCase();
-
-      const headerMeta = document.createElement('div');
-      headerMeta.innerHTML = `<div class="text-primary small fw-bold">${b.user_name || b.user || 'Anonymous'}</div><div class="text-muted small">${formatDate(b.created_at || b.createdAt || b.created)}</div>`;
-
-      header.appendChild(avatar);
-      header.appendChild(headerMeta);
-
-      // title
-      const h5 = document.createElement('h5');
-      h5.className = 'card-title text-truncate';
-      h5.title = b.builds_name || b.build_name || b.name || '';
-      h5.textContent = b.builds_name || b.build_name || b.name || '';
-
-      // description
-      const descText = b.builds_description || b.description || '';
-      const pDesc = descText ? document.createElement('p') : null;
-      if (pDesc) {
-        pDesc.className = 'card-text text-muted small';
-        pDesc.textContent = descText.length > 80 ? descText.substring(0, 80) + '...' : descText;
-      }
-
-      // specs
-      const specs = document.createElement('div');
-      specs.className = 'build-specs mb-2';
-      const cpuName = (b.cpu && (b.cpu.name || b.cpu_name)) || b.cpu_name || 'N/A';
-      const gpuName = (b.gpu && (b.gpu.name || b.gpu_name)) || b.gpu_name || 'N/A';
-      specs.innerHTML = `<div class="text-muted small mb-1">🖥️ ${cpuName} + ${gpuName}</div>`;
-
-      // price
-      const price = document.createElement('div');
-      price.className = 'fw-bold mb-2 text-success';
-      const total = parseFloat(b.total_price || b.price || b.total || 0).toFixed(2);
-      price.textContent = `RM${total}`;
-
-      // rating area (use average_rating if available)
-      const ratingArea = document.createElement('div');
-      ratingArea.className = 'mb-2';
-      const rating = parseFloat(b.average_rating || 0);
-      const ratingCount = b.rating_count || b.ratings || 0;
-      ratingArea.innerHTML = `<div class="d-flex align-items-center"><div class="rating-stars me-2">${generateStars(rating)}</div><span class="text-muted small">${rating.toFixed(1)} (${ratingCount} ${ratingCount === 1 ? 'rating' : 'ratings'})</span></div>`;
-
-      // action buttons
-      const actions = document.createElement('div');
-      actions.className = 'd-flex justify-content-between align-items-center';
-      actions.innerHTML = `
-        <div class="d-flex gap-1">
-          <button class="btn btn-sm btn-outline-primary rate-btn" title="Rate this build"><i class="bi bi-star"></i> Rate</button>
-          <button class="btn btn-sm btn-outline-secondary comment-btn" title="View comments"><i class="bi bi-chat"></i> ${b.comment_count || 0}</button>
-        </div>
-        <button class="btn btn-sm btn-outline-info view-btn" title="View full build"><i class="bi bi-eye"></i></button>
-      `;
-
-      // attach handlers (delegated)
-      actions.querySelector('.rate-btn').addEventListener('click', () => showRatingModal(b.builds_id || b.build_id || b.id));
-      actions.querySelector('.comment-btn').addEventListener('click', () => showCommentsModal(b.builds_id || b.build_id || b.id));
-      actions.querySelector('.view-btn').addEventListener('click', () => viewBuildDetails(b.builds_id || b.build_id || b.id));
-
-      // build card
-      body.appendChild(header);
-      body.appendChild(h5);
-      if (pDesc) body.appendChild(pDesc);
-      body.appendChild(specs);
-      body.appendChild(price);
-      body.appendChild(ratingArea);
-      body.appendChild(actions);
-
-      card.appendChild(ratio);
-      card.appendChild(body);
-      col.appendChild(card);
-
-      return col;
+    function updateRatingStarsInput(rating) {
+      document.querySelectorAll('#ratingStarsInput .star').forEach((star, index) => {
+        if (index + 1 <= rating) {
+          star.classList.add('filled');
+          star.classList.remove('empty');
+        } else {
+          star.classList.remove('filled');
+          star.classList.add('empty');
+        }
+      });
     }
 
-    /*******************************
-     * Load existing completed builds (these are the ones published via /api/save-build)
-     *******************************/
-    async function loadBuilds() {
+    // ============================================
+    // API Functions
+    // ============================================
+    async function loadCompletedBuilds() {
+      showLoading(true);
       try {
-        const container = document.getElementById("build-list");
-        container.innerHTML = ''; // clear
-        // fetch existing published completed builds
-        const response = await fetch(`/api/builds`); // public endpoint - returns all completed builds
+        const response = await fetch(`${API_BASE}/completed-builds`);
         if (!response.ok) throw new Error('Failed to fetch builds');
-        const builds = await response.json();
-
-        if (!builds || builds.length === 0) {
-          container.innerHTML = '<p class="text-center text-muted">No builds available.</p>';
-          return;
-        }
-
-        const frag = document.createDocumentFragment();
-        builds.forEach(b => frag.appendChild(renderBuildCard(b)));
-        container.appendChild(frag);
-
-      } catch (err) {
-        console.error('Error loading builds:', err);
-        document.getElementById('build-list').innerHTML = '<p class="text-danger">Failed to load builds</p>';
+        
+        allBuilds = await response.json();
+        filteredBuilds = [...allBuilds];
+        applyFiltersAndSort();
+        showLoading(false);
+      } catch (error) {
+        console.error('Error loading builds:', error);
+        showLoading(false);
+        showEmptyState(true);
       }
     }
 
-    /*******************************
-     * Add Build flow (Option A)
-     *******************************/
-    const addBuildBtn = document.getElementById('addBuildBtn');
-    const addBuildModalEl = document.getElementById('addBuildModal');
-    const savedBuildSelect = document.getElementById('savedBuildSelect');
-    const savedBuildPreview = document.getElementById('savedBuildPreview');
-    const previewImage = document.getElementById('previewImage');
-    const previewName = document.getElementById('previewName');
-    const previewSpecs = document.getElementById('previewSpecs');
-    const previewPrice = document.getElementById('previewPrice');
-    const addBuildError = document.getElementById('add-build-error');
-
-    let mySavedBuilds = []; // cache user saved builds fetched from /api/my-builds
-
-    addBuildBtn.addEventListener('click', async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('You must be logged in to add a build');
-        return;
-      }
-
-      // reset modal UI
-      addBuildError.classList.add('d-none');
-      savedBuildSelect.innerHTML = '<option value="">-- Loading saved builds --</option>';
-      savedBuildPreview.classList.add('d-none');
-      document.getElementById('newBuildName').value = '';
-      document.getElementById('newBuildDescription').value = '';
-      document.getElementById('makePublic').checked = true;
-
-      // Show modal
-      const modal = new bootstrap.Modal(addBuildModalEl);
-      modal.show();
-
-      // Fetch user's saved builds
+    async function loadBuildDetails(buildId) {
       try {
-        const res = await fetch('/api/my-builds', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (res.status === 401 || res.status === 403) {
-          throw new Error('Unauthorized. Please login again.');
-        }
-
-        if (!res.ok) {
-          const err = await res.json().catch(()=>({message:'Failed to fetch'}));
-          throw new Error(err.message || 'Failed to fetch saved builds');
-        }
-
-        const data = await res.json();
-        mySavedBuilds = Array.isArray(data) ? data : [];
-
-        if (mySavedBuilds.length === 0) {
-          savedBuildSelect.innerHTML = '<option value="">-- No saved builds found --</option>';
-          return;
-        }
-
-        // populate select with saved builds
-        savedBuildSelect.innerHTML = '<option value="">-- Select a saved build --</option>';
-        mySavedBuilds.forEach(sb => {
-          const opt = document.createElement('option');
-          opt.value = sb.builds_id || sb.build_id || sb.id;
-          // store minimal preview data on option dataset for quick access
-          opt.dataset.previewName = sb.build_name || sb.builds_name || (sb.name || '');
-          opt.dataset.previewPrice = (sb.total_price || sb.price || (sb.cpu && sb.cpu.price) || 0);
-          opt.dataset.previewImage = sb.image_url || sb.image || (sb.cpu && sb.cpu.image_url) || 'public/images/default-build.jpg';
-          opt.textContent = `${opt.dataset.previewName} — RM${parseFloat(opt.dataset.previewPrice).toFixed(2)}`;
-          savedBuildSelect.appendChild(opt);
-        });
-
+        const response = await fetch(`${API_BASE}/completed-builds/${buildId}`);
+        if (!response.ok) throw new Error('Failed to fetch build details');
+        return await response.json();
       } catch (error) {
-        console.error('Error fetching saved builds:', error);
-        savedBuildSelect.innerHTML = '<option value="">-- Failed to load saved builds --</option>';
-        addBuildError.classList.remove('d-none');
-        addBuildError.textContent = error.message || 'Failed to load saved builds';
-      }
-    });
-
-    // when user chooses a saved build from dropdown, show preview
-    savedBuildSelect.addEventListener('change', function() {
-      const selectedVal = this.value;
-      if (!selectedVal) {
-        savedBuildPreview.classList.add('d-none');
-        return;
-      }
-
-      // find saved build object
-      const sb = mySavedBuilds.find(x => String(x.builds_id || x.build_id || x.id) === String(selectedVal));
-      if (!sb) {
-        savedBuildPreview.classList.add('d-none');
-        return;
-      }
-
-      // Preview fields
-      previewImage.src = sb.image_url || sb.image || (sb.cpu && sb.cpu.image_url) || 'public/images/default-build.jpg';
-      previewName.textContent = sb.build_name || sb.builds_name || sb.name || 'Saved Build';
-      const cpuName = (sb.cpu && (sb.cpu.name || sb.cpu_name)) || sb.cpu_name || 'N/A';
-      const gpuName = (sb.gpu && (sb.gpu.name || sb.gpu_name)) || sb.gpu_name || 'N/A';
-      previewSpecs.textContent = `${cpuName} + ${gpuName}`;
-      previewPrice.textContent = `RM${parseFloat(sb.total_price || sb.price || 0).toFixed(2)}`;
-      savedBuildPreview.classList.remove('d-none');
-
-      // If user didn't already set build title, suggest the saved build name
-      const newBuildNameInput = document.getElementById('newBuildName');
-      if (!newBuildNameInput.value) {
-        newBuildNameInput.value = sb.build_name || sb.builds_name || sb.name || '';
-      }
-    });
-
-    // Submit new completed build (taking component IDs from selected saved build)
-    document.getElementById('submitNewBuildBtn').addEventListener('click', async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('You must be logged in to share a build');
-        return;
-      }
-
-      const selectedId = savedBuildSelect.value;
-      if (!selectedId) {
-        alert('Please select one of your saved builds first');
-        return;
-      }
-
-      const sb = mySavedBuilds.find(x => String(x.builds_id || x.build_id || x.id) === String(selectedId));
-      if (!sb) {
-        alert('Selected saved build not found. Try again.');
-        return;
-      }
-
-      const buildName = document.getElementById('newBuildName').value.trim();
-      const buildDescription = document.getElementById('newBuildDescription').value.trim();
-      const isPublic = document.getElementById('makePublic').checked;
-
-      if (!buildName) {
-        alert('Please enter a build name');
-        return;
-      }
-
-      // Prepare body using the saved build's component IDs (backend expects cpus_id, gpus_id, etc.)
-      // The /api/my-builds returned structure in your backend maps to:
-      // sb.cpu.id, sb.gpu.id, sb.motherboard.id, sb.ram.id, sb.cpucooler.id, sb.storage.id, sb.case.id, sb.psu.id
-      const body = {
-        build_name: buildName,
-        build_description: buildDescription,
-        is_public: isPublic,
-        cpus_id: sb.cpu?.id || sb.cpu_id || sb.cpu_id || 1,
-        gpus_id: sb.gpu?.id || sb.gpu_id || sb.gpu_id || 1,
-        motherboards_id: sb.motherboard?.id || sb.motherboard_id || sb.motherboard_id || 1,
-        rams_id: sb.ram?.id || sb.ram_id || sb.ram_id || 1,
-        cpucoolers_id: sb.cpucooler?.id || sb.cpucooler_id || sb.cpucooler_id || 1,
-        storages_id: sb.storage?.id || sb.storage_id || sb.storage_id || 1,
-        cases_id: sb.case?.id || sb.case_id || sb.case_id || 1,
-        psus_id: sb.psu?.id || sb.psu_id || sb.psu_id || 1
-      };
-
-      try {
-        const res = await fetch('/api/save-build', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify(body)
-        });
-
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({ message: 'Failed to save' }));
-          throw new Error(err.message || 'Failed to save build');
-        }
-
-        const result = await res.json();
-
-        // successful -> close modal and append new card to UI.
-        alert('✅ Build added successfully!');
-        bootstrap.Modal.getInstance(addBuildModalEl).hide();
-
-        // We can append a minimal card using the saved build preview + returned build_id
-        const newBuildCardData = {
-          builds_id: result.build_id || result.builds_id || '',
-          builds_name: buildName,
-          builds_description: buildDescription,
-          image_url: sb.image_url || sb.image || (sb.cpu && sb.cpu.image_url) || 'public/images/default-build.jpg',
-          cpu_name: sb.cpu?.name || sb.cpu_name || '',
-          gpu_name: sb.gpu?.name || sb.gpu_name || '',
-          total_price: sb.total_price || sb.price || 0,
-          created_at: new Date().toISOString(),
-          user_name: (await getCurrentUserName()) || 'You',
-          comment_count: 0,
-          average_rating: 0,
-          rating_count: 0
-        };
-
-        const container = document.getElementById('build-list');
-        // if container had "No builds available." replace it
-        if (container.children.length === 1 && container.children[0].tagName === 'P') {
-          container.innerHTML = '';
-        }
-        container.prepend(renderBuildCard(newBuildCardData)); // add to top
-
-      } catch (error) {
-        console.error('Error saving build:', error);
-        alert('Error saving build: ' + (error.message || 'Unknown'));
-      }
-    });
-
-    // Helper: attempt to get current user's name from token payload (optional)
-    async function getCurrentUserName() {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) return null;
-        // if token is a JWT, decode payload
-        const payload = token.split('.')[1];
-        if (!payload) return null;
-        const decoded = JSON.parse(decodeURIComponent(escape(window.atob(payload.replace(/-/g, '+').replace(/_/g, '/')))));
-        return decoded.name || decoded.email || decoded.Username || null;
-      } catch (e) {
+        console.error('Error loading build details:', error);
         return null;
       }
     }
 
-    /*******************************
-     * Rating & Comments (keeps original behavior)
-     *******************************/
-    function showRatingModal(buildId) {
-      currentBuildId = buildId;
-      const token = localStorage.getItem("token");
-      if (!token) {
-        alert("Please login to rate builds");
-        return;
-      }
-
-      // Reset rating
-      userRating = 0;
-      document.querySelectorAll('#starRating .star').forEach(star => {
-        star.style.opacity = '0.3';
-      });
-
-      const modal = new bootstrap.Modal(document.getElementById('ratingModal'));
-      modal.show();
-    }
-
-    function showCommentsModal(buildId) {
-      currentBuildId = buildId;
-      loadComments(buildId);
-      const modal = new bootstrap.Modal(document.getElementById('commentsModal'));
-      modal.show();
-    }
-
-    async function viewBuildDetails(buildId) {
-      // Could navigate to detailed build page or show modal
-      console.log('View build details:', buildId);
-      // for example: window.location = `/build.html?id=${buildId}`;
-    }
-
-    // Rating UI interactions
-    document.querySelectorAll('#starRating .star').forEach(star => {
-      star.addEventListener('click', function() {
-        userRating = parseInt(this.dataset.rating);
-        updateStarDisplay(userRating);
-      });
-
-      star.addEventListener('mouseenter', function() {
-        const hoverRating = parseInt(this.dataset.rating);
-        updateStarDisplay(hoverRating);
-      });
-    });
-
-    document.getElementById('starRating').addEventListener('mouseleave', function() {
-      updateStarDisplay(userRating);
-    });
-
-    function updateStarDisplay(rating) {
-      document.querySelectorAll('#starRating .star').forEach((star, index) => {
-        star.style.opacity = (index + 1) <= rating ? '1' : '0.3';
-      });
-    }
-
-    // Submit rating
-    document.getElementById('submitRatingBtn').addEventListener('click', async () => {
-      if (userRating === 0) {
-        alert('Please select a rating');
-        return;
-      }
-
-      const token = localStorage.getItem("token");
-      if (!token) {
-        alert("Please login to submit ratings");
-        return;
-      }
-
+    async function loadUserSavedBuilds() {
+      const token = getToken();
+      if (!token) return [];
+      
       try {
-        const response = await fetch('/api/builds/rate', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            builds_id: currentBuildId,
-            rating: userRating,
-            comment: document.getElementById('ratingComment').value
-          })
+        const response = await fetch(`${API_BASE}/user/saved-builds`, {
+          headers: { 'Authorization': `Bearer ${token}` }
         });
-
-        if (!response.ok) {
-          const error = await response.json().catch(()=>({message:'Failed'}));
-          throw new Error(error.message || 'Failed to submit rating');
-        }
-
-        alert('✅ Rating submitted successfully!');
-        bootstrap.Modal.getInstance(document.getElementById('ratingModal')).hide();
-        // Optionally refresh the builds list to show new average rating
-        loadBuilds();
-
+        if (!response.ok) throw new Error('Failed to fetch saved builds');
+        return await response.json();
       } catch (error) {
-        console.error('Error submitting rating:', error);
-        alert('Error: ' + error.message);
+        console.error('Error loading saved builds:', error);
+        return [];
       }
-    });
+    }
 
-    /*******************************
-     * Comments functions
-     *******************************/
+    async function submitCompletedBuild(buildId, title, description) {
+      const token = getToken();
+      if (!token) throw new Error('Not authenticated');
+      
+      const response = await fetch(`${API_BASE}/completed-builds`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          build_id: buildId,
+          title: title,
+          description: description
+        })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Failed to submit build' }));
+        throw new Error(error.message || 'Failed to submit build');
+      }
+      
+      return await response.json();
+    }
+
     async function loadComments(buildId) {
       try {
-        const response = await fetch(`/api/builds/${buildId}/comments`);
-        if (!response.ok) throw new Error('Failed to load comments');
-        const comments = await response.json();
-
-        const commentsList = document.getElementById('commentsList');
-        if (!comments || comments.length === 0) {
-          commentsList.innerHTML = '<p class="text-muted">No comments yet. Be the first to comment!</p>';
-          return;
-        }
-
-        commentsList.innerHTML = comments.map(comment => `
-          <div class="comment mb-3 p-3 border rounded">
-            <div class="d-flex align-items-center mb-2">
-              <div class="user-avatar me-2" style="width:24px;height:24px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:0.75rem;">
-                ${(comment.username || 'U').charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <div class="small fw-bold">${comment.username || 'Anonymous'}</div>
-                <div class="small text-muted">${formatDate(comment.created_at)}</div>
-              </div>
-            </div>
-            <div class="comment-content">${comment.comment}</div>
-          </div>
-        `).join('');
-
+        const response = await fetch(`${API_BASE}/completed-builds/${buildId}/comments`);
+        if (!response.ok) throw new Error('Failed to fetch comments');
+        return await response.json();
       } catch (error) {
         console.error('Error loading comments:', error);
-        document.getElementById('commentsList').innerHTML = '<p class="text-danger">Failed to load comments</p>';
+        return [];
       }
     }
 
-    // Submit comment
-    document.getElementById('submitCommentBtn').addEventListener('click', async () => {
-      const commentText = document.getElementById('newComment').value.trim();
-      if (!commentText) {
-        alert('Please enter a comment');
-        return;
+    async function addComment(buildId, content) {
+      const token = getToken();
+      if (!token) throw new Error('Not authenticated');
+      
+      const response = await fetch(`${API_BASE}/completed-builds/${buildId}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ content: content })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Failed to add comment' }));
+        throw new Error(error.message || 'Failed to add comment');
       }
+      
+      return await response.json();
+    }
 
-      const token = localStorage.getItem("token");
-      if (!token) {
-        alert("Please login to comment");
-        return;
+    async function deleteComment(commentId) {
+      const token = getToken();
+      if (!token) throw new Error('Not authenticated');
+      
+      const response = await fetch(`${API_BASE}/comments/${commentId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Failed to delete comment' }));
+        throw new Error(error.message || 'Failed to delete comment');
       }
+      
+      return true;
+    }
 
+    async function submitRating(buildId, rating) {
+      const token = getToken();
+      if (!token) throw new Error('Not authenticated');
+      
+      const response = await fetch(`${API_BASE}/completed-builds/${buildId}/rating`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ rating: rating })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Failed to submit rating' }));
+        throw new Error(error.message || 'Failed to submit rating');
+      }
+      
+      return await response.json();
+    }
+
+    async function loadUserRating(buildId) {
+      const token = getToken();
+      if (!token) return null;
+      
       try {
-        const response = await fetch('/api/builds/comment', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            builds_id: currentBuildId,
-            comment: commentText
-          })
+        const response = await fetch(`${API_BASE}/completed-builds/${buildId}/rating`, {
+          headers: { 'Authorization': `Bearer ${token}` }
         });
-
-        if (!response.ok) {
-          const error = await response.json().catch(()=>({message:'Failed'}));
-          throw new Error(error.message || 'Failed to submit comment');
-        }
-
-        document.getElementById('newComment').value = '';
-        loadComments(currentBuildId); // Refresh comments
-        loadBuilds(); // Refresh builds to show comment count
-
+        if (!response.ok) return null;
+        return await response.json();
       } catch (error) {
-        console.error('Error submitting comment:', error);
-        alert('Error: ' + error.message);
+        return null;
       }
-    });
+    }
 
-    /*******************************
-     * Initialization
-     *******************************/
-    // wire sort/filter (simple hooks - can expand)
-    document.getElementById('sortSelect').addEventListener('change', loadBuilds);
-    document.getElementById('searchBuilds').addEventListener('input', () => {
-      // naive client-side filter: re-run loadBuilds and filter after fetch
-      // For now, reload builds which will pick server-side sorting if implemented
-      loadBuilds();
-    });
+    // ============================================
+    // UI Functions
+    // ============================================
+    function showLoading(show) {
+      document.getElementById('loadingIndicator').classList.toggle('d-none', !show);
+      document.getElementById('buildsGrid').classList.toggle('d-none', show);
+    }
 
-    // load builds on page open
-    loadBuilds();
+    function showEmptyState(show) {
+      document.getElementById('emptyState').classList.toggle('d-none', !show);
+      document.getElementById('buildsGrid').classList.toggle('d-none', show);
+      document.getElementById('paginationContainer').classList.toggle('d-none', show);
+    }
+
+    function displayBuildCards(builds) {
+      const grid = document.getElementById('buildsGrid');
+      grid.innerHTML = '';
+      
+      if (builds.length === 0) {
+        showEmptyState(true);
+        return;
+      }
+      
+      showEmptyState(false);
+      grid.classList.remove('d-none');
+      
+      builds.forEach(build => {
+        const col = document.createElement('div');
+        col.className = 'col-sm-6 col-md-4 col-lg-3';
+        
+        const rating = parseFloat(build.average_rating) || 0;
+        const ratingCount = build.rating_count || 0;
+        const commentCount = build.comment_count || 0;
+        
+        col.innerHTML = `
+          <div class="card build-card h-100" data-build-id="${build.id}">
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-2">
+                <div class="user-avatar me-2">${(build.username || 'U').charAt(0).toUpperCase()}</div>
+                <div>
+                  <div class="fw-bold small">${escapeHtml(build.username || 'Anonymous')}</div>
+                  <div class="text-muted small">${formatDate(build.created_at)}</div>
+                </div>
+              </div>
+              
+              <h6 class="card-title text-truncate mb-2" title="${escapeHtml(build.title)}">${escapeHtml(build.title)}</h6>
+              
+              <div class="mb-2">
+                <span class="star-rating small">${renderStarRating(rating)}</span>
+                <span class="text-muted small ms-1">${rating.toFixed(1)} (${ratingCount})</span>
+              </div>
+              
+              <div class="fw-bold text-success mb-2">${formatPrice(build.total_price)}</div>
+              
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="badge bg-secondary">
+                  <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16" class="me-1">
+                    <path d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414A2 2 0 0 0 3 11.586l-2 2V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
+                  </svg>
+                  ${commentCount}
+                </span>
+                <button class="btn btn-outline-primary btn-sm view-details-btn">View Details</button>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        // Add click handler for view details
+        col.querySelector('.view-details-btn').addEventListener('click', () => openBuildDetailModal(build.id));
+        col.querySelector('.build-card').addEventListener('click', (e) => {
+          if (!e.target.closest('button')) {
+            openBuildDetailModal(build.id);
+          }
+        });
+        
+        grid.appendChild(col);
+      });
+    }
+
+    function setupPagination(totalItems) {
+      const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+      const pagination = document.getElementById('pagination');
+      const container = document.getElementById('paginationContainer');
+      
+      if (totalPages <= 1) {
+        container.classList.add('d-none');
+        return;
+      }
+      
+      container.classList.remove('d-none');
+      pagination.innerHTML = '';
+      
+      // Previous button
+      const prevLi = document.createElement('li');
+      prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+      prevLi.innerHTML = '<a class="page-link" href="#">Previous</a>';
+      prevLi.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (currentPage > 1) goToPage(currentPage - 1);
+      });
+      pagination.appendChild(prevLi);
+      
+      // Page numbers
+      for (let i = 1; i <= totalPages; i++) {
+        if (totalPages > 7 && i > 2 && i < totalPages - 1 && Math.abs(i - currentPage) > 1) {
+          if (i === 3 || i === totalPages - 2) {
+            const ellipsisLi = document.createElement('li');
+            ellipsisLi.className = 'page-item disabled';
+            ellipsisLi.innerHTML = '<span class="page-link">...</span>';
+            pagination.appendChild(ellipsisLi);
+          }
+          continue;
+        }
+        
+        const li = document.createElement('li');
+        li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+        li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+        li.addEventListener('click', (e) => {
+          e.preventDefault();
+          goToPage(i);
+        });
+        pagination.appendChild(li);
+      }
+      
+      // Next button
+      const nextLi = document.createElement('li');
+      nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+      nextLi.innerHTML = '<a class="page-link" href="#">Next</a>';
+      nextLi.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (currentPage < totalPages) goToPage(currentPage + 1);
+      });
+      pagination.appendChild(nextLi);
+    }
+
+    function goToPage(page) {
+      currentPage = page;
+      const start = (page - 1) * ITEMS_PER_PAGE;
+      const end = start + ITEMS_PER_PAGE;
+      displayBuildCards(filteredBuilds.slice(start, end));
+      setupPagination(filteredBuilds.length);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function applyFiltersAndSort() {
+      const searchTerm = document.getElementById('searchBuilds').value.toLowerCase().trim();
+      const sortBy = document.getElementById('sortSelect').value;
+      
+      // Filter
+      filteredBuilds = allBuilds.filter(build => {
+        if (searchTerm) {
+          const title = (build.title || '').toLowerCase();
+          const username = (build.username || '').toLowerCase();
+          return title.includes(searchTerm) || username.includes(searchTerm);
+        }
+        return true;
+      });
+      
+      // Sort
+      filteredBuilds.sort((a, b) => {
+        switch (sortBy) {
+          case 'oldest':
+            return new Date(a.created_at) - new Date(b.created_at);
+          case 'rating':
+            return (parseFloat(b.average_rating) || 0) - (parseFloat(a.average_rating) || 0);
+          case 'price_low':
+            return (parseFloat(a.total_price) || 0) - (parseFloat(b.total_price) || 0);
+          case 'price_high':
+            return (parseFloat(b.total_price) || 0) - (parseFloat(a.total_price) || 0);
+          case 'newest':
+          default:
+            return new Date(b.created_at) - new Date(a.created_at);
+        }
+      });
+      
+      currentPage = 1;
+      goToPage(1);
+    }
+
+    // ============================================
+    // Modal Functions
+    // ============================================
+    async function openBuildDetailModal(buildId) {
+      currentBuildId = buildId;
+      
+      // Reset modal state
+      document.getElementById('detailBuildTitle').textContent = 'Loading...';
+      document.getElementById('detailBuildUser').textContent = '';
+      document.getElementById('detailBuildDate').textContent = '';
+      document.getElementById('detailBuildPrice').textContent = '';
+      document.getElementById('detailBuildRating').innerHTML = '';
+      document.getElementById('detailRatingCount').textContent = '';
+      document.getElementById('componentTableBody').innerHTML = '<tr><td colspan="3" class="text-center">Loading...</td></tr>';
+      document.getElementById('componentTotalPrice').textContent = '';
+      document.getElementById('commentsList').innerHTML = '';
+      document.getElementById('commentCount').textContent = '0';
+      document.getElementById('noCommentsMsg').classList.remove('d-none');
+      
+      const detailDiv = document.getElementById('detailBuildDescription');
+      // Show modal
+      const modal = new bootstrap.Modal(document.getElementById('buildDetailModal'));
+      modal.show();
+      
+      // Load build details
+      const build = await loadBuildDetails(buildId);
+      if (!build) {
+        document.getElementById('detailBuildTitle').textContent = 'Error loading build';
+        return;
+      }
+      
+      // Populate build info
+      document.getElementById('detailBuildTitle').textContent = build.title || 'Untitled Build';
+      document.getElementById('detailBuildUser').textContent = build.username || 'Anonymous';
+      document.getElementById('detailBuildDate').textContent = formatDate(build.created_at);
+      document.getElementById('detailBuildPrice').textContent = formatPrice(build.total_price);
+      
+      const rating = parseFloat(build.average_rating) || 0;
+      const ratingCount = build.rating_count || 0;
+      document.getElementById('detailBuildRating').innerHTML = renderStarRating(rating);
+      document.getElementById('detailRatingCount').textContent = `(${ratingCount} ${ratingCount === 1 ? 'rating' : 'ratings'})`;
+      
+      // Hide the description by default
+      detailDiv.textContent = '';
+      detailDiv.classList.add('d-none');
+
+      // Show description if available
+      if (build.description) {
+        detailDiv.textContent = build.description;
+        detailDiv.classList.remove('d-none');
+      }
+      
+      // Render component table
+      renderComponentTable(build);
+      
+      // Setup rating section
+      setupRatingSection(build);
+      
+      // Load and render comments
+      await renderComments(buildId);
+    }
+
+    function renderComponentTable(build) {
+      const tbody = document.getElementById('componentTableBody');
+      tbody.innerHTML = '';
+      
+      let totalPrice = 0;
+      
+      const components = [
+        { type: 'CPU', data: build.cpu },
+        { type: 'GPU', data: build.gpu },
+        { type: 'Motherboard', data: build.motherboard },
+        { type: 'RAM', data: build.ram },
+        { type: 'Storage', data: build.storage },
+        { type: 'CPU Cooler', data: build.cpucooler },
+        { type: 'Case', data: build.case_component || build.pc_case },
+        { type: 'PSU', data: build.psu }
+      ];
+      
+      components.forEach(comp => {
+        if (comp.data) {
+          const price = parseFloat(comp.data.price) || 0;
+          totalPrice += price;
+          
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><strong>${comp.type}</strong></td>
+            <td>${escapeHtml(comp.data.name || 'N/A')}</td>
+            <td class="text-end">${formatPrice(price)}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+      });
+      
+      // If build has direct total_price, use that instead
+      if (build.total_price) {
+        totalPrice = parseFloat(build.total_price);
+      }
+      
+      document.getElementById('componentTotalPrice').textContent = formatPrice(totalPrice);
+    }
+
+    async function setupRatingSection(build) {
+      const ratingSection = document.getElementById('userRatingSection');
+      const userRatingDisplay = document.getElementById('userRatingDisplay');
+      const userRatingInput = document.getElementById('userRatingInput');
+      const ratingMessage = document.getElementById('ratingMessage');
+      
+      ratingMessage.classList.add('d-none');
+      
+      if (!isLoggedIn()) {
+        ratingSection.classList.add('d-none');
+        return;
+      }
+      
+      // Check if user owns this build
+      const currentUserId = getCurrentUserId();
+      if (build.user_id && build.user_id === currentUserId) {
+        ratingSection.classList.add('d-none');
+        return;
+      }
+      
+      ratingSection.classList.remove('d-none');
+      
+      // Check if user already rated
+      const userRatingData = await loadUserRating(currentBuildId);
+      
+      if (userRatingData && userRatingData.rating) {
+        selectedRating = userRatingData.rating;
+        document.getElementById('userRatingStars').innerHTML = renderStarRating(selectedRating);
+        userRatingDisplay.classList.remove('d-none');
+        updateRatingStarsInput(selectedRating);
+      } else {
+        selectedRating = 0;
+        userRatingDisplay.classList.add('d-none');
+        updateRatingStarsInput(0);
+      }
+    }
+
+    async function renderComments(buildId) {
+      const comments = await loadComments(buildId);
+      const commentsList = document.getElementById('commentsList');
+      const noCommentsMsg = document.getElementById('noCommentsMsg');
+      const commentCount = document.getElementById('commentCount');
+      const addCommentSection = document.getElementById('addCommentSection');
+      const loginToCommentMsg = document.getElementById('loginToCommentMsg');
+      
+      commentCount.textContent = comments.length;
+      
+      if (isLoggedIn()) {
+        addCommentSection.classList.remove('d-none');
+        loginToCommentMsg.classList.add('d-none');
+      } else {
+        addCommentSection.classList.add('d-none');
+        loginToCommentMsg.classList.remove('d-none');
+      }
+      
+      if (comments.length === 0) {
+        commentsList.innerHTML = '';
+        noCommentsMsg.classList.remove('d-none');
+        return;
+      }
+      
+      noCommentsMsg.classList.add('d-none');
+      const currentUserId = getCurrentUserId();
+      
+      commentsList.innerHTML = comments.map(comment => {
+        const canDelete = currentUserId && comment.user_id === currentUserId;
+        return `
+          <div class="comment-item mb-3 p-3 bg-white border rounded" data-comment-id="${comment.id}">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div class="d-flex align-items-center">
+                <div class="user-avatar-small me-2">${(comment.username || 'U').charAt(0).toUpperCase()}</div>
+                <div>
+                  <div class="fw-bold small">${escapeHtml(comment.username || 'Anonymous')}</div>
+                  <div class="text-muted small">${formatDate(comment.created_at)}</div>
+                </div>
+              </div>
+              ${canDelete ? `<button class="btn btn-sm btn-outline-danger delete-comment-btn" data-comment-id="${comment.id}">Delete</button>` : ''}
+            </div>
+            <div class="comment-content">${escapeHtml(comment.content)}</div>
+          </div>
+        `;
+      }).join('');
+      
+      // Add delete handlers
+      commentsList.querySelectorAll('.delete-comment-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (!confirm('Are you sure you want to delete this comment?')) return;
+          
+          try {
+            await deleteComment(btn.dataset.commentId);
+            await renderComments(currentBuildId);
+          } catch (error) {
+            alert('Error deleting comment: ' + error.message);
+          }
+        });
+      });
+    }
+
+    async function openSubmitBuildModal() {
+      // Reset form
+      document.getElementById('submitBuildError').classList.add('d-none');
+      document.getElementById('savedBuildSelect').innerHTML = '<option value="">-- Loading your saved builds --</option>';
+      document.getElementById('buildPreview').classList.add('d-none');
+      document.getElementById('buildTitle').value = '';
+      document.getElementById('buildDescription').value = '';
+      document.getElementById('descCharCount').textContent = '0';
+      
+      // Show modal
+      const modal = new bootstrap.Modal(document.getElementById('submitBuildModal'));
+      modal.show();
+      
+      // Load saved builds
+      userSavedBuilds = await loadUserSavedBuilds();
+      
+      const select = document.getElementById('savedBuildSelect');
+      
+      if (userSavedBuilds.length === 0) {
+        select.innerHTML = '<option value="">-- No saved builds found --</option>';
+        document.getElementById('submitBuildError').textContent = 'You need to save a build first before you can share it. Go to the PC Builder to create and save a build.';
+        document.getElementById('submitBuildError').classList.remove('d-none');
+        return;
+      }
+      
+      select.innerHTML = '<option value="">-- Select a saved build --</option>';
+      userSavedBuilds.forEach(build => {
+        const option = document.createElement('option');
+        option.value = build.builds_id || build.build_id || build.id;
+        const buildName = build.builds_name || build.build_name || build.name || 'Unnamed Build';
+        const totalPrice = parseFloat(build.total_price || build.price || 0);
+        option.textContent = `${buildName} — ${formatPrice(totalPrice)}`;
+        select.appendChild(option);
+      });
+    }
+
+    // ============================================
+    // Event Handlers
+    // ============================================
+    function initializeEventHandlers() {
+      // Submit build button
+      document.getElementById('submitBuildBtn').addEventListener('click', () => {
+        if (!isLoggedIn()) {
+          alert('Please login to submit a build');
+          window.location.href = 'login.html';
+          return;
+        }
+        openSubmitBuildModal();
+      });
+      
+      // Saved build selection change
+      document.getElementById('savedBuildSelect').addEventListener('change', function() {
+        const selectedId = this.value;
+        const preview = document.getElementById('buildPreview');
+        
+        if (!selectedId) {
+          preview.classList.add('d-none');
+          return;
+        }
+        
+        const build = userSavedBuilds.find(b => 
+          String(b.builds_id || b.build_id || b.id) === String(selectedId)
+        );
+        
+        if (!build) {
+          preview.classList.add('d-none');
+          return;
+        }
+        
+        document.getElementById('previewBuildName').textContent = build.builds_name || build.build_name || build.name || 'Saved Build';
+        
+        const cpuName = build.cpu?.name || build.cpu_name || 'N/A';
+        const gpuName = build.gpu?.name || build.gpu_name || 'N/A';
+        document.getElementById('previewBuildSpecs').textContent = `${cpuName} + ${gpuName}`;
+        
+        document.getElementById('previewBuildPrice').textContent = formatPrice(build.total_price || build.price);
+        preview.classList.remove('d-none');
+        
+        // Auto-fill title if empty
+        const titleInput = document.getElementById('buildTitle');
+        if (!titleInput.value) {
+          titleInput.value = build.builds_name || build.build_name || build.name || '';
+        }
+      });
+      
+      // Description character count
+      document.getElementById('buildDescription').addEventListener('input', function() {
+        document.getElementById('descCharCount').textContent = this.value.length;
+      });
+      
+      // Submit build confirm
+      document.getElementById('submitBuildConfirmBtn').addEventListener('click', async () => {
+        const buildId = document.getElementById('savedBuildSelect').value;
+        const title = document.getElementById('buildTitle').value.trim();
+        const description = document.getElementById('buildDescription').value.trim();
+        const errorEl = document.getElementById('submitBuildError');
+        const spinner = document.getElementById('submitBuildSpinner');
+        const btn = document.getElementById('submitBuildConfirmBtn');
+        
+        // Validation
+        if (!buildId) {
+          errorEl.textContent = 'Please select a saved build';
+          errorEl.classList.remove('d-none');
+          return;
+        }
+        
+        if (!title) {
+          errorEl.textContent = 'Please enter a build title';
+          errorEl.classList.remove('d-none');
+          return;
+        }
+        
+        errorEl.classList.add('d-none');
+        spinner.classList.remove('d-none');
+        btn.disabled = true;
+        
+        try {
+          await submitCompletedBuild(buildId, title, description);
+          
+          bootstrap.Modal.getInstance(document.getElementById('submitBuildModal')).hide();
+          alert('Build submitted successfully!');
+          
+          // Reload builds
+          await loadCompletedBuilds();
+        } catch (error) {
+          errorEl.textContent = error.message;
+          errorEl.classList.remove('d-none');
+        } finally {
+          spinner.classList.add('d-none');
+          btn.disabled = false;
+        }
+      });
+      
+      // Sort and search
+      document.getElementById('sortSelect').addEventListener('change', applyFiltersAndSort);
+      
+      let searchTimeout;
+      document.getElementById('searchBuilds').addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(applyFiltersAndSort, 500);
+      });
+      
+      // Rating stars interaction
+      document.querySelectorAll('#ratingStarsInput .star').forEach(star => {
+        star.addEventListener('click', async function() {
+          selectedRating = parseInt(this.dataset.rating);
+          updateRatingStarsInput(selectedRating);
+          
+          try {
+            await submitRating(currentBuildId, selectedRating);
+            
+            document.getElementById('userRatingStars').innerHTML = renderStarRating(selectedRating);
+            document.getElementById('userRatingDisplay').classList.remove('d-none');
+            
+            const ratingMessage = document.getElementById('ratingMessage');
+            ratingMessage.textContent = 'Rating submitted!';
+            ratingMessage.classList.remove('d-none');
+            setTimeout(() => ratingMessage.classList.add('d-none'), 3000);
+            
+            // Update the build card in the grid
+            await loadCompletedBuilds();
+          } catch (error) {
+            alert('Error submitting rating: ' + error.message);
+          }
+        });
+        
+        star.addEventListener('mouseenter', function() {
+          const hoverRating = parseInt(this.dataset.rating);
+          updateRatingStarsInput(hoverRating);
+        });
+      });
+      
+      document.getElementById('ratingStarsInput').addEventListener('mouseleave', () => {
+        updateRatingStarsInput(selectedRating);
+      });
+      
+      // Submit comment
+      document.getElementById('submitCommentBtn').addEventListener('click', async () => {
+        const content = document.getElementById('commentText').value.trim();
+        const spinner = document.getElementById('commentSpinner');
+        const btn = document.getElementById('submitCommentBtn');
+        
+        if (!content) {
+          alert('Please enter a comment');
+          return;
+        }
+        
+        spinner.classList.remove('d-none');
+        btn.disabled = true;
+        
+        try {
+          await addComment(currentBuildId, content);
+          document.getElementById('commentText').value = '';
+          await renderComments(currentBuildId);
+          
+          // Update comment count in grid
+          await loadCompletedBuilds();
+        } catch (error) {
+          alert('Error posting comment: ' + error.message);
+        } finally {
+          spinner.classList.add('d-none');
+          btn.disabled = false;
+        }
+      });
+    }
+
+    // ============================================
+    // Initialization
+    // ============================================
+    document.addEventListener('DOMContentLoaded', () => {
+      // Show submit button if logged in
+      if (isLoggedIn()) {
+        document.getElementById('submitBuildBtn').classList.remove('d-none');
+      }
+      
+      initializeEventHandlers();
+      loadCompletedBuilds();
+    });
   </script>
 </body>
 </html>

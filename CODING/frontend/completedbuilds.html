@@ -6,13 +6,13 @@
   <title>Completed Builds - HardwareForge</title>
 
   <link rel="stylesheet" href="public/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="public/css/completedbuilds.css" />
+  <link rel="stylesheet" href="public/css/test.css" />
   <link rel="stylesheet" href="public/css/dropdown.css" />
   <link rel="stylesheet" href="public/css/sidebar.css" />
   <script src="public/js/security.js" defer></script>
 </head>
 
-<body class="light">
+<body class="dark">
   <div class="app-grid">
     <div id="sidebar-container"></div>
     <div id="dropdown-container"></div>
@@ -96,7 +96,7 @@
           </div>
 
           <!-- Build Preview -->
-          <div id="buildPreview" class="card bg-light mb-3 d-none">
+          <div id="buildPreview" class="card mb-3 d-none">
             <div class="card-body">
               <h6 class="card-title mb-2">Build Preview</h6>
               <div class="d-flex gap-3 align-items-center">
@@ -157,7 +157,7 @@
           </div>
 
           <!-- Build Description -->
-          <div id="detailBuildDescription" class="mb-4 p-3 bg-light rounded d-none"></div>
+          <div id="detailBuildDescription" class="detail-description mb-4 p-3 rounded d-none"></div>
 
           <!-- Component Table -->
           <div class="table-responsive mb-4">
@@ -204,7 +204,7 @@
           </div>
 
           <!-- Comments Section -->
-          <div class="card bg-light">
+          <div class="card comments-card">
             <div class="card-body">
               <h6 class="card-title mb-3">
                 Comments <span id="commentCount" class="badge bg-primary ms-2">0</span>
@@ -706,14 +706,13 @@
       document.getElementById('detailBuildPrice').textContent = '';
       document.getElementById('detailBuildRating').innerHTML = '';
       document.getElementById('detailRatingCount').textContent = '';
-      document.getElementById('detailBuildDescription').textContent = '';
-      document.getElementById('detailBuildDescription').classList.add('d-none');
       document.getElementById('componentTableBody').innerHTML = '<tr><td colspan="3" class="text-center">Loading...</td></tr>';
       document.getElementById('componentTotalPrice').textContent = '';
       document.getElementById('commentsList').innerHTML = '';
       document.getElementById('commentCount').textContent = '0';
       document.getElementById('noCommentsMsg').classList.remove('d-none');
       
+      const detailDiv = document.getElementById('detailBuildDescription');
       // Show modal
       const modal = new bootstrap.Modal(document.getElementById('buildDetailModal'));
       modal.show();
@@ -736,9 +735,14 @@
       document.getElementById('detailBuildRating').innerHTML = renderStarRating(rating);
       document.getElementById('detailRatingCount').textContent = `(${ratingCount} ${ratingCount === 1 ? 'rating' : 'ratings'})`;
       
+      // Hide the description by default
+      detailDiv.textContent = '';
+      detailDiv.classList.add('d-none');
+
+      // Show description if available
       if (build.description) {
-        document.getElementById('detailBuildDescription').textContent = build.description;
-        document.getElementById('detailBuildDescription').classList.remove('d-none');
+        detailDiv.textContent = build.description;
+        detailDiv.classList.remove('d-none');
       }
       
       // Render component table

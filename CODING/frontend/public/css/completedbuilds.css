@@ -1,22 +1,114 @@
-/* ============================================
-   Completed Builds Page Styles
-   ============================================ */
-
-/* Base body styles - Light mode is default */
+/* =======================
+   Common Styles
+   ======================= */
 body {
   min-height: 100vh;
   background-color: #f5f5f5;
   color: #212529;
 }
 
-body.dark {
-  background-color: #1a1a2e;
-  color: #eaeaea;
+/* =======================
+   Light Mode
+   ======================= */
+body.light {
+  background-color: #ffffff;
+  color: #000000;
 }
 
-body.light {
-  background-color: #f5f5f5;
-  color: #212529;
+body.light .mb-1 {
+  color: #000000;
+}
+
+body.light .content {
+  background-color: #ffffff;
+}
+
+body.light .card,
+body.light .modal-content,
+body.light .table {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+body.light .card .text-muted,
+body.light .modal-content .text-muted {
+  color: #000000;
+}
+
+body.light .btn-primary {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+  color: #ffffff;
+}
+
+body.light .btn-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: #ffffff;
+}
+
+body.light .btn-outline-primary {
+  color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+body.light .btn-outline-primary:hover {
+  background-color: #0d6efd;
+  color: #fff;
+}
+
+body.light .badge.bg-secondary {
+  background-color: #000000;
+}
+
+/* =======================
+   Dark Mode
+   ======================= */
+body.dark {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+body.dark .content {
+  background-color: #121212;
+}
+
+body.dark .card,
+body.dark .modal-content,
+body.dark .table {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+}
+
+body.dark .card .text-muted,
+body.dark .modal-content .text-muted {
+  color: #ffffff;
+}
+
+body.dark .btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+  color: #ffffff;
+}
+
+body.dark .btn-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: #ffffff;
+}
+
+body.dark .btn-outline-primary {
+  color: #007bff;
+  border-color: #007bff;
+}
+
+body.dark .btn-outline-primary:hover {
+  background-color: #007bff;
+  color: #fff;
+}
+
+body.dark .badge.bg-secondary {
+  background-color: #ffffff;
 }
 
 /* ============================================
@@ -68,9 +160,10 @@ body.light {
   font-size: 1.5rem;
 }
 
-/* ============================================
-   Build Cards
-   ============================================ */
+/* =======================
+   Cards & Build Cards
+   ======================= */
+/* Dark mode for build cards */
 .build-card {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
@@ -78,19 +171,40 @@ body.light {
   border: 1px solid #ddd;
 }
 
+body.dark .build-card {
+    background-color: #121212; /* black/dark background */
+    color: #ffffff; /* white text */
+    border: 1px solid #333; /* subtle border */
+}
+
 .build-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-body.dark .build-card {
-  background-color: #6c757d;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+body.dark .build-card .text-muted {
+    color: #bbbbbb; /* lighter gray for muted text */
 }
 
-body.dark .build-card:hover {
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+body.dark .build-card .text-success {
+    color: #4caf50; /* green text for prices */
 }
+
+body.dark .build-card .btn-outline-primary {
+    color: #ffffff;
+    border-color: #ffffff;
+}
+
+body.dark .build-card .btn-outline-primary:hover {
+    background-color: #ffffff;
+    color: #121212;
+}
+
+body.dark .build-card .badge.bg-secondary {
+    background-color: #333;
+    color: #ffffff;
+}
+
 
 /* User Avatar */
 .user-avatar {
@@ -121,33 +235,65 @@ body.dark .build-card:hover {
   flex-shrink: 0;
 }
 
-/* ============================================
-   Modal Styles
-   ============================================ */
-body.dark .modal-content.bg-dark {
-  border: 1px solid rgba(255, 255, 255, 0.1);
+/* =======================
+   Modals
+   ======================= */
+.modal-content {
+  transition: background-color 0.3s, color 0.3s;
 }
 
-body.dark .modal-header.border-secondary,
-body.dark .modal-footer.border-secondary {
-  border-color: rgba(255, 255, 255, 0.1) !important;
+body.dark .modal-content {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  border-color: #2c2c2c;
 }
 
-/* Component Table in Detail Modal */
-body.dark .table-dark {
-  --bs-table-bg: #2d2d44;
-  --bs-table-striped-bg: #343452;
-  --bs-table-hover-bg: #3d3d5c;
+body.dark .detail-description {
+  background-color: #000000; /* light background */
+  color: #ffffff; /* dark text */
 }
 
-body.dark .table-dark th,
-body.dark .table-dark td {
-  border-color: rgba(255, 255, 255, 0.1);
+body.dark .table {
+    background-color: #1e1e1e; /* table background */
+    color: #f1f1f1;           /* text color */
+    border: 1px solid #444;
 }
 
-body.dark .table-primary {
-  --bs-table-bg: #4e4e7a;
-  --bs-table-color: #fff;
+body.dark .table th,
+body.dark .table td {
+    background-color: #1e1e1e; /* cell background */
+    color: #f1f1f1;            /* cell text */
+    border: 1px solid #444;    /* cell border */
+}
+
+body.dark .table tbody tr:hover {
+    background-color: #2a2a2a;
+}
+
+
+/* =======================
+   Inputs, Textarea, Select
+   ======================= */
+body.light input.form-control,
+body.light select.form-select,
+body.light textarea.form-control {
+  background-color: #fff;
+  color: #212529;
+  border: 1px solid #ced4da;
+}
+
+body.dark input.form-control,
+body.dark select.form-select,
+body.dark textarea.form-control {
+  background-color: #2a2a2a;
+  color: #e0e0e0;
+  border: 1px solid #555;
+}
+
+/* Form helper text */
+body.dark .form-text,
+body.dark .text-muted {
+  color: #aaaaaa !important;
 }
 
 /* ============================================
@@ -167,28 +313,40 @@ body.dark .comment-item {
   background-color: #1a1a2e !important;
 }
 
-/* ============================================
-   Form Styles
-   ============================================ */
-body.dark .form-control.bg-dark,
-body.dark .form-control.bg-secondary,
-body.dark .form-select.bg-dark,
-body.dark .form-select.bg-secondary {
-  color: #fff;
+.comments-card {
+  background-color: #ffffff; /* light card */
+  color: #000000; /* dark text */
 }
 
-body.dark .form-control.bg-dark:focus,
-body.dark .form-control.bg-secondary:focus,
-body.dark .form-select.bg-dark:focus,
-body.dark .form-select.bg-secondary:focus {
-  background-color: #3d3d5c;
-  border-color: #667eea;
-  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-  color: #fff;
+.comments-card .text-muted {
+  color: #000000; /* muted text in light mode */
 }
 
-.form-control::placeholder {
-  color: #6c757d;
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .comments-card {
+    background-color: #000000; /* dark card */
+    color: #ffffff; /* white text */
+  }
+
+  .comments-card .text-muted {
+    color: #ffffff; /* muted text in dark mode */
+  }
+
+  .comments-card .alert-info {
+    background-color: #1a73e8; /* slightly darker alert for dark mode */
+    color: #f8f9fa;
+  }
+
+  .comments-card .form-control {
+    background-color: #000000; /* dark textarea */
+    color: #ffffff;
+    border-color: #495057;
+  }
+
+  .comments-card .form-control::placeholder {
+    color: #ffffff;
+  }
 }
 
 /* ============================================

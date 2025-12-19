@@ -60,26 +60,46 @@ body.light .form-select option {
 }
 
 body.dark .comparison-table {
-    background-color: #1e1e1e;
-    color: #f1f1f1;
-    border-color: #444;
+    background-color: #1e1e1e; /* table background */
+    color: #f1f1f1;           /* text color */
+    border: 1px solid #444;
 }
 
 body.dark .comparison-table th,
 body.dark .comparison-table td {
-    border-color: #444;
-    color: #f1f1f1;
+    background-color: #1e1e1e; /* cell background */
+    color: #f1f1f1;            /* cell text */
+    border: 1px solid #444;    /* cell border */
+}
+
+body.dark .comparison-table tbody tr:hover {
+    background-color: #2a2a2a;
 }
 
 .best-spec {
-    background-color: #8cffc9 !important;
-    color: #fff;
+    background-color: #8cffc9 !important; /* light green highlight */
+    color: #000 !important;               /* text black on highlight for contrast */
     font-weight: bold;
 }
 
 .table-responsive {
-    max-height: 500px; /* or whatever fits your page */
+    max-height: 500px; /* adjust as needed */
     overflow-y: auto;
     overflow-x: auto;
 }
 
+body.dark #paginationContainer button {
+    background-color: #fff; /* white buttons */
+    color: #000;            /* black text */
+    border: 1px solid #ccc;
+}
+
+
+body.dark #paginationContainer button.btn-primary {
+    background-color: #1e1e1e;
+    color: #f1f1f1;
+}
+
+#paginationContainer button:hover {
+    opacity: 0.85;
+}
