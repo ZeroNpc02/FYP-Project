@@ -111,13 +111,13 @@ node server.js
 
 ## 🎯 Target Users
 
-PC building beginners
+* PC building beginners
 
-Enthusiasts comparing hardware
+* Enthusiasts comparing hardware
 
-Students learning full-stack web development
+* Students learning full-stack web development
 
-Anyone planning a PC build within a budget
+* Anyone planning a PC build within a budget
 
 ## 🔮 Future Improvements
 
