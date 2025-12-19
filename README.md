@@ -89,7 +89,9 @@ Each build links components via foreign keys, allowing flexible and scalable bui
 ### 1️⃣ Clone the Repository
 
 git clone https://github.com/ZeroNpc02/FYP-Project.git
+
 cd coding
+
 cd backend
 
 ### 2️⃣ Install Dependencies
